@@ -3,12 +3,32 @@
 @section('main_content')
 @include('admin.layouts.nav')
 @include('admin.layouts.sidebar')
+<!-- start page content wrapper-->
+<div class="page-content-wrapper">
+
+    <!-- start page content-->
+    <div class="page-content">
+
+        <!--start breadcrumb-->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">لوحة التحكم</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0 align-items-center">
+                        <li class="breadcrumb-item"><a href="javascript:;"><ion-icon name="home-outline"></ion-icon></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page"> الزبائن </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <!--end breadcrumb-->
 <div class="main-content">
     <section class="section">
         <div class="section-header d-flex justify-content-between">
-            <h1>Customers</h1>
+            <h1>الزبائن</h1>
             <div class="ml-auto">
-                <a href="{{ route('admin_customer_create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Add New</a>
+                <a href="{{ route('admin_customer_create') }}" class="btn btn-primary">إضافة زبون<i class="fas fa-plus"></i></a>
             </div>
         </div>
         <div class="section-body">
@@ -20,12 +40,12 @@
                                 <table class="table table-bordered" id="example1">
                                     <thead>
                                         <tr>
-                                            <th>SL</th>
-                                            <th>Photo</th>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Status</th>
-                                            <th class="w_100">Action</th>
+                                            <th>الرقم التسلسلي</th>
+                                            <th>الصورة</th>
+                                            <th>الاسم</th>
+                                            <th>البريد الإلكتروني</th>
+                                            <th>الحالة</th>
+                                            <th class="w_100">الإجراء</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -43,16 +63,16 @@
                                             <td>{{ $customer->email }}</td>
                                             <td>
                                                 @if($customer->status == 0)
-                                                <span class="badge bg-warning">Pending</span>
+                                                <span class="badge bg-warning">قيد الانتظار</span>
                                                 @elseif($customer->status == 1)
-                                                <span class="badge bg-success">Active</span>
+                                                <span class="badge bg-success">نشط</span>
                                                 @else
-                                                <span class="badge bg-danger">Suspended</span>
+                                                <span class="badge bg-danger">معلق</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 <a href="{{ route('admin_customer_edit',$customer->id) }}" class="btn btn-primary btn-sm"><i class="fas fa-edit"></i></a>
-                                                <a href="{{ route('admin_customer_delete',$customer->id) }}" class="btn btn-danger btn-sm" onClick="return confirm('Are you sure?');"><i class="fas fa-trash"></i></a>
+                                                <a href="{{ route('admin_customer_delete',$customer->id) }}" class="btn btn-danger btn-sm delete-btn"><i class="fas fa-trash"></i></a>
                                             </td>
                                         </tr>
                                         @endforeach
@@ -66,4 +86,8 @@
         </div>
     </section>
 </div>
+</div>
+<!-- end page content-->
+</div>
+<!--end page content wrapper-->
 @endsection

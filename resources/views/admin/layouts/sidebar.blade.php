@@ -1,11 +1,10 @@
-<!--start sidebar -->
 <aside class="sidebar-wrapper" data-simplebar="true">
     <div class="sidebar-header">
         <div>
             <img src="assets/images/logo-icon-2.png" class="logo-icon" alt="logo icon">
         </div>
         <div>
-            <h4 class="logo-text">Dashkote</h4>
+            <h4 class="logo-text">لوحة الإدارة</h4>
         </div>
         <div class="toggle-icon ms-auto">
             <ion-icon name="menu-sharp"></ion-icon>
@@ -13,440 +12,189 @@
     </div>
     <!--navigation-->
     <ul class="metismenu" id="menu">
+
+        {{-- لوحة التحكم --}}
+        <a href="{{ route('admin_dashboard') }}" class="{{ Request::is('admin/dashboard') ? 'active' : '' }}">
+            <div class="parent-icon">
+                <ion-icon name="home-sharp"></ion-icon>
+            </div>
+            <div class="menu-title">لوحة التحكم</div>
+        </a>
+
+        {{-- اعدادات الموقع --}}
         <li>
-            <a href="javascript:;" class="has-arrow">
+            <a href="javascript:;" class="has-arrow {{ Request::is('admin/setting/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="home-sharp"></ion-icon>
+                    <ion-icon name="settings-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Dashboard</div>
+                <div class="menu-title">اعدادات الموقع</div>
             </a>
             <ul>
-                <li> <a href="index.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Default
+                <li>
+                    <a href="{{ route('admin_setting_logo_index') }}" class="{{ Request::is('admin/setting/logo/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>الشعار
                     </a>
                 </li>
-                <li> <a href="index2.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Alternate
+                <li>
+                    <a href="{{ route('admin_setting_favicon_index') }}" class="{{ Request::is('admin/setting/favicon/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>رمز الصفحة
                     </a>
                 </li>
-            </ul>
-        </li>
-        <li>
-            <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon">
-                    <ion-icon name="bag-handle-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">eCommerce</div>
-            </a>
-            <ul>
-                <li><a href="ecommerce-shop-grid-view.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Product Grid
+                <li>
+                    <a href="{{ route('admin_setting_banner_index') }}" class="{{ Request::is('admin/setting/banner/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>اللافتة
                     </a>
                 </li>
-                <li><a href="ecommerce-shop-list-view.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Product List
-                    </a>
-                </li>
-                <li><a href="ecommerce-shop-grid-view-top-filter.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Product Top Filters
-                    </a>
-                </li>
-                <li><a href="ecommerce-product-details.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Product Details
-                    </a>
-                </li>
-                <li><a href="ecommerce-product-comparison.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Product Comparison
-                    </a>
-                </li>
-                <li><a href="ecommerce-shop-cart.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Shoping Cart
-                    </a>
-                </li>
-                <li><a href="ecommerce-checkout-details.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Checkout
-                    </a>
-                </li>
-                <li><a href="ecommerce-checkout-shipping.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Shipping
-                    </a>
-                </li>
-                <li><a href="ecommerce-checkout-payment.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Payment
-                    </a>
-                </li>
-                <li><a href="ecommerce-checkout-review.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Review Cart
-                    </a>
-                </li>
-                <li><a href="ecommerce-checkout-complete.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Order Complete
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-label">UI Elements</li>
-        <li>
-            <a href="javascript:;" class="has-arrow">
-                <div class="parent-icon">
-                    <ion-icon name="briefcase-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Widgets</div>
-            </a>
-            <ul>
-                <li> <a href="widgets-static-widgets.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Static Widgets
-                    </a>
-                </li>
-                <li> <a href="widgets-data-widgets.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Data Widgets
+                <li>
+                    <a href="{{ route('admin_setting_footer_index') }}" class="{{ Request::is('admin/setting/footer/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>تذييل الصفحة
                     </a>
                 </li>
             </ul>
         </li>
 
+        {{-- قسم العقارات --}}
         <li>
-            <a class="has-arrow" href="javascript:;">
+            <a href="javascript:;" class="has-arrow {{ Request::is('admin/location/*') || Request::is('admin/type/*') || Request::is('admin/amenity/*') || Request::is('admin/property/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="gift-sharp"></ion-icon>
+                    <ion-icon name="home-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Components</div>
+                <div class="menu-title">قسم العقارات</div>
             </a>
             <ul>
-                <li> <a href="component-alerts.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Alerts
+                <li>
+                    <a href="{{ route('admin_location_index') }}" class="{{ Request::is('admin/location/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>الموقع
                     </a>
                 </li>
-                <li> <a href="component-accordions.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Accordions
+                <li>
+                    <a href="{{ route('admin_type_index') }}" class="{{ Request::is('admin/type/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>النوع
                     </a>
                 </li>
-                <li> <a href="component-badges.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Badges
+                <li>
+                    <a href="{{ route('admin_amenity_index') }}" class="{{ Request::is('admin/amenity/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>وسائل الراحة
                     </a>
                 </li>
-                <li> <a href="component-buttons.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Buttons
-                    </a>
-                </li>
-                <li> <a href="component-cards.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Cards
-                    </a>
-                </li>
-                <li> <a href="component-carousels.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Carousels
-                    </a>
-                </li>
-                <li> <a href="component-list-groups.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>List Groups
-                    </a>
-                </li>
-                <li> <a href="component-media-object.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Media Objects
-                    </a>
-                </li>
-                <li> <a href="component-modals.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Modals
-                    </a>
-                </li>
-                <li> <a href="component-navs-tabs.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Navs & Tabs
-                    </a>
-                </li>
-                <li> <a href="component-paginations.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Pagination
-                    </a>
-                </li>
-                <li> <a href="component-popovers-tooltips.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Popovers & Tooltips
-                    </a>
-                </li>
-                <li> <a href="component-progress-bars.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Progress
-                    </a>
-                </li>
-                <li> <a href="component-spinners.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Spinners
-                    </a>
-                </li>
-                <li> <a href="component-notifications.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Notifications
+                <li>
+                    <a href="{{ route('admin_property_index') }}" class="{{ Request::is('admin/property/*') ? 'active' : '' }}">
+                        <ion-icon name="arrow-forward-outline"></ion-icon>العقارات
                     </a>
                 </li>
             </ul>
         </li>
+
+        {{-- الباقات --}}
         <li>
-            <a class="has-arrow" href="javascript:;">
+            <a class="" href="{{ route('admin_package_index') }}" class="{{ Request::is('admin/package/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="leaf-sharp"></ion-icon>
+                    <ion-icon name="cube-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Icons</div>
-            </a>
-            <ul>
-                <li> <a href="icons-line-icons.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Line Icons
-                    </a>
-                </li>
-                <li> <a href="icons-boxicons.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Boxicons
-                    </a>
-                </li>
-                <li> <a href="icons-feather-icons.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Feather Icons
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-label">Forms & Tables</li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="newspaper-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Forms</div>
-            </a>
-            <ul>
-                <li> <a href="form-elements.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Form Elements
-                    </a>
-                </li>
-                <li> <a href="form-input-group.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Input Groups
-                    </a>
-                </li>
-                <li> <a href="form-layouts.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Forms Layouts
-                    </a>
-                </li>
-                <li> <a href="form-validations.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Form Validation
-                    </a>
-                </li>
-                <li> <a href="form-date-time-pickes.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Date Pickers
-                    </a>
-                </li>
-                <li> <a href="form-select2.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Select2
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="server-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Tables</div>
-            </a>
-            <ul>
-                <li> <a href="table-basic-table.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Basic Table
-                    </a>
-                </li>
-                <li> <a href="table-advance-tables.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Advance Tables
-                    </a>
-                </li>
-                <li> <a href="table-datatable.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Data Table
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-label">Pages</li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="lock-closed-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Authentication</div>
-            </a>
-            <ul>
-                <li> <a href="authentication-sign-in-basic.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign In Basic
-                    </a>
-                </li>
-                <li> <a href="authentication-sign-in-cover.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign In Cover
-                    </a>
-                </li>
-                <li> <a href="authentication-sign-in-simple.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign In Simple
-                    </a>
-                </li>
-                <li> <a href="authentication-sign-up-basic.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign Up Basic
-                    </a>
-                </li>
-                <li> <a href="authentication-sign-up-cover.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign Up Cover
-                    </a>
-                </li>
-                <li> <a href="authentication-sign-up-simple.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Sign Up Simple
-                    </a>
-                </li>
-                <li> <a href="authentication-reset-password-basic.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Reset Password Basic
-                    </a>
-                </li>
-                <li> <a href="authentication-reset-password-cover.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Reset Password Cover
-                    </a>
-                </li>
-                <li> <a href="authentication-reset-password-simple.html" target="_blank">
-                        <ion-icon name="ellipse-outline"></ion-icon>Reset Password Simple
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="pages-user-profile.html">
-                <div class="parent-icon">
-                    <ion-icon name="person-circle-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">User Profile</div>
+                <div class="menu-title">الباقات</div>
             </a>
         </li>
+
+        {{-- الطلبات --}}
         <li>
-            <a href="pages-edit-profile.html">
+            <a class="" href="{{ route('admin_order_index') }}" class="{{ Request::is('admin/order/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="create-sharp"></ion-icon>
+                    <ion-icon name="cart-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Edit Profile</div>
+                <div class="menu-title">الطلبات</div>
             </a>
         </li>
+
+        {{-- الزبائن --}}
         <li>
-            <a href="pages-invoices.html">
+            <a class="" href="{{ route('admin_customer_index') }}" class="{{ Request::is('admin/customer/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="receipt-sharp"></ion-icon>
+                    <ion-icon name="people-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Invoice</div>
+                <div class="menu-title">الزبائن</div>
             </a>
         </li>
+
+        {{-- الوكلاء --}}
         <li>
-            <a href="pages-to-do.html">
+            <a class="" href="{{ route('admin_agent_index') }}" class="{{ Request::is('admin/agent/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="shield-checkmark-sharp"></ion-icon>
+                    <ion-icon name="person-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Invoice</div>
+                <div class="menu-title">الوكلاء</div>
             </a>
         </li>
+
+        {{-- شهادات العملاء --}}
         <li>
-            <a class="has-arrow" href="javascript:;">
+            <a class="" href="{{ route('admin_testimonial_index') }}" class="{{ Request::is('admin/testimonial/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="copy-sharp"></ion-icon>
+                    <ion-icon name="chatbubble-ellipses-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Extra Pages</div>
-            </a>
-            <ul>
-                <li><a href="pages-faq.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>FAQ
-                    </a>
-                </li>
-                <li><a href="pages-pricing-tables.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Pricing
-                    </a>
-                </li>
-                <li><a href="pages-errors-404-error.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>404 Error
-                    </a>
-                </li>
-                <li><a href="pages-errors-500-error.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>500 Error
-                    </a></li>
-                <li><a href="pages-errors-coming-soon.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Coming Soon
-                    </a></li>
-                <li><a href="pages-starter-page.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Blank Page
-                    </a></li>
-            </ul>
-        </li>
-        <li class="menu-label">Charts & Maps</li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="bar-chart-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Charts</div>
-            </a>
-            <ul>
-                <li> <a href="charts-apex-chart.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Apex
-                    </a>
-                </li>
-                <li> <a href="charts-chartjs.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Chartjs
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="map-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Maps</div>
-            </a>
-            <ul>
-                <li> <a href="map-google-maps.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Google Maps
-                    </a>
-                </li>
-                <li> <a href="map-vector-maps.html">
-                        <ion-icon name="ellipse-outline"></ion-icon>Vector Maps
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-label">Others</li>
-        <li>
-            <a class="has-arrow" href="javascript:;">
-                <div class="parent-icon">
-                    <ion-icon name="list-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Menu Levels</div>
-            </a>
-            <ul>
-                <li> <a class="has-arrow" href="javascript:;">
-                        <ion-icon name="ellipse-outline"></ion-icon>Level One
-                    </a>
-                    <ul>
-                        <li> <a class="has-arrow" href="javascript:;">
-                                <ion-icon name="ellipse-outline"></ion-icon>Level Two
-                            </a>
-                            <ul>
-                                <li> <a href="javascript:;">
-                                        <ion-icon name="ellipse-outline"></ion-icon>Level Three
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </li>
-        <li>
-            <a href="javascript:;" target="_blank">
-                <div class="parent-icon">
-                    <ion-icon name="document-text-sharp"></ion-icon>
-                </div>
-                <div class="menu-title">Documentation</div>
+                <div class="menu-title">شهادات العملاء</div>
             </a>
         </li>
+
+        {{-- المدونة --}}
         <li>
-            <a href="https://themeforest.net/user/codervent" target="_blank">
+            <a class="" href="{{ route('admin_post_index') }}" class="{{ Request::is('admin/post/*') ? 'active' : '' }}">
                 <div class="parent-icon">
-                    <ion-icon name="link-sharp"></ion-icon>
+                    <ion-icon name="newspaper-outline"></ion-icon>
                 </div>
-                <div class="menu-title">Support</div>
+                <div class="menu-title">المدونة</div>
             </a>
         </li>
+
+        {{-- الاسئلة المتكررة --}}
+        <li>
+            <a class="" href="{{ route('admin_faq_index') }}" class="{{ Request::is('admin/faq/*') ? 'active' : '' }}">
+                <div class="parent-icon">
+                    <ion-icon name="help-circle-outline"></ion-icon>
+                </div>
+                <div class="menu-title">الاسئلة المتكررة</div>
+            </a>
+        </li>
+
+        {{-- قسم الصفحات --}}
+        <li>
+            <a class="" href="{{ route('admin_page_index') }}" class="{{ Request::is('admin/page/*') ? 'active' : '' }}">
+                <div class="parent-icon">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <div class="menu-title">قسم الصفحات</div>
+            </a>
+        </li>
+
+        {{-- المشتركين --}}
+        <li>
+            <a class="" href="{{ route('admin_subscriber_index') }}" class="{{ Request::is('admin/subscriber/*') ? 'active' : '' }}">
+                <div class="parent-icon">
+                    <ion-icon name="mail-outline"></ion-icon>
+                </div>
+                <div class="menu-title">المشتركين</div>
+            </a>
+        </li>
+
+        {{-- تعديل الملف الشخصي --}}
+        <li>
+            <a class="" href="{{ route('admin_profile') }}" class="{{ Request::is('admin/profile') ? 'active' : '' }}">
+                <div class="parent-icon">
+                    <ion-icon name="create-outline"></ion-icon>
+                </div>
+                <div class="menu-title">تعديل الملف الشخصي</div>
+            </a>
+        </li>
+
+        {{-- تسجيل الخروج --}}
+        <li>
+            <a class="" href="{{ route('admin_logout') }}">
+                <div class="parent-icon">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                </div>
+                <div class="menu-title">تسجيل الخروج</div>
+            </a>
+        </li>
+
     </ul>
     <!--end navigation-->
 </aside>
-<!--end sidebar -->
-
-

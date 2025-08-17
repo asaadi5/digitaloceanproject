@@ -7,27 +7,27 @@
     <div class="offcanvas offcanvas-end shadow border-start-0 p-2" data-bs-scroll="true" data-bs-backdrop="false"
          tabindex="-1" id="offcanvasScrolling">
         <div class="offcanvas-header border-bottom">
-            <h5 class="offcanvas-title" id="offcanvasScrollingLabel">Theme Customizer</h5>
+            <h5 class="offcanvas-title" id="offcanvasScrollingLabel">مُخصص المظهر</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
         </div>
         <div class="offcanvas-body">
-            <h6 class="mb-0">Theme Variation</h6>
+            <h6 class="mb-0">خيارات المظهر</h6>
             <hr>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="inlineRadioOptions" id="LightTheme" value="option1">
-                <label class="form-check-label" for="LightTheme">Light</label>
+                <label class="form-check-label" for="LightTheme">فاتح</label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="inlineRadioOptions" id="DarkTheme" value="option2">
-                <label class="form-check-label" for="DarkTheme">Dark</label>
+                <label class="form-check-label" for="DarkTheme">داكن</label>
             </div>
             <div class="form-check form-check-inline">
                 <input class="form-check-input" type="radio" name="inlineRadioOptions" id="SemiDark" value="option3"
                        checked>
-                <label class="form-check-label" for="SemiDark">Semi Dark</label>
+                <label class="form-check-label" for="SemiDark">داكن جزئي</label>
             </div>
             <hr />
-            <h6 class="mb-0">Header Colors</h6>
+            <h6 class="mb-0">ألوان الترويسة</h6>
             <hr />
             <div class="header-colors-indigators">
                 <div class="row row-cols-auto g-3">

@@ -19,16 +19,14 @@ class AdminController extends Controller
 {
     public function dashboard()
     {
-        /*$total_packages = Package::count();
+        $total_packages = Package::count();
         $total_completed_orders = Order::where('status', 'Completed')->count();
         $total_active_properties = Order::where('status', 'Active')->count();
         $total_active_subscribers = Subscriber::where('status', 1)->count();
         $total_active_customers = User::where('status', 1)->count();
         $total_active_agents = Agent::where('status', 1)->count();
         return view('admin.dashboard.index', compact('total_packages', 'total_completed_orders', 'total_active_properties', 'total_active_subscribers', 'total_active_customers', 'total_active_agents'));
-    */
-        return view('admin.dashboard.index');
-        }
+    }
 
     public function login()
     {
@@ -37,34 +35,23 @@ class AdminController extends Controller
 
     public function login_submit(Request $request)
     {
-        // نفس اسم الحقل في الفورم (email) لكن نسمح بأي نص: بريد أو اسم مستخدم
         $request->validate([
-            'email'    => ['required', 'string'],  // لا نستخدم قاعدة email لأن الحقل قد يحتوي username
-            'password' => ['required', 'string'],
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
 
-        // نحدّد نوع المُدخل: بريد أم اسم مستخدم
-        $loginInput = $request->input('email');
-        $loginField = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $check = $request->all();
+        $data = [
+            'email' => $check['email'],
+            'password' => $check['password'],
+        ];
 
-        // محاولة التوثيق بالحقل المناسب + كلمة المرور
-        if (Auth::guard('admin')->attempt([
-            $loginField => $loginInput,
-            'password'  => $request->input('password'),
-        ])) {
-            // اختياري: تجديد الجلسة لزيادة الأمان بعد تسجيل الدخول
-            $request->session()->regenerate();
-
-            return redirect()->route('admin_dashboard')
-                ->with('success', 'Logged in successfully');
+        if (Auth::guard('admin')->attempt($data)) {
+            return redirect()->route('admin_dashboard')->with('success', 'Logged in successfully');
+        } else {
+            return redirect()->back()->with('error', 'Invalid credentials');
         }
-
-        // فشل التوثيق
-        return back()
-            ->withInput($request->only('email')) // إعادة إدخال المستخدم للحقل
-            ->with('error', 'Invalid credentials');
     }
-
 
     public function logout()
     {
@@ -84,7 +71,7 @@ class AdminController extends Controller
         ]);
 
         $admin = Admin::where('email', $request->email)->first();
-        if(!$admin){
+        if (!$admin) {
             return redirect()->back()->with('error', 'Email not found');
         }
 
@@ -92,12 +79,12 @@ class AdminController extends Controller
         $admin->token = $token;
         $admin->update();
 
-        $link = route('admin_reset_password', [$token,$request->email]);
+        $link = route('admin_reset_password', [$token, $request->email]);
         $subject = 'Reset Password';
         $message = 'Click on the following link to reset your password: <br>';
-        $message .= '<a href="'.$link.'">'.$link.'</a>';
+        $message .= '<a href="' . $link . '">' . $link . '</a>';
 
-        \Mail::to($request->email)->send(new Websitemail($subject,$message));
+        \Mail::to($request->email)->send(new Websitemail($subject, $message));
 
         return redirect()->back()->with('success', 'Reset password link sent to your email');
 
@@ -106,7 +93,7 @@ class AdminController extends Controller
     public function reset_password($token, $email)
     {
         $admin = Admin::where('email', $email)->where('token', $token)->first();
-        if(!$admin){
+        if (!$admin) {
             return redirect()->route('admin_login')->with('error', 'Invalid token or email');
         }
         return view('admin.auth.reset_password', compact('token', 'email'));
@@ -134,36 +121,55 @@ class AdminController extends Controller
 
     public function profile_submit(Request $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:admins,email,'.Auth::guard('admin')->user()->id,
-        ]);
+        $admin = Admin::findOrFail(Auth::guard('admin')->user()->id);
 
-        $admin = Admin::where('id',Auth::guard('admin')->user()->id)->first();
+        // التحقق الجزئي
+        $rules = [];
 
-        if($request->photo){
-            $request->validate([
-                'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ]);
-            $final_name = 'admin_'.time().'.'.$request->photo->extension();
-            if($admin->photo != '') {
-                unlink(public_path('uploads/'.$admin->photo));
+        if ($request->has('name') && $request->name != '') {
+            $rules['name'] = 'string|max:255';
+        }
+
+        if ($request->has('email') && $request->email != '') {
+            $rules['email'] = 'email|unique:admins,email,' . $admin->id;
+        }
+
+        if ($request->hasFile('photo')) {
+            $rules['photo'] = 'image|mimes:jpeg,png,jpg,gif,svg|max:2048';
+        }
+
+        if ($request->filled('password')) {
+            $rules['password'] = 'required|min:6';
+            $rules['confirm_password'] = 'required|same:password';
+        }
+
+        $request->validate($rules);
+
+        // تحديث الصورة
+        if ($request->hasFile('photo')) {
+            $final_name = 'admin_' . time() . '.' . $request->photo->extension();
+            if ($admin->photo && file_exists(public_path('uploads/' . $admin->photo))) {
+                unlink(public_path('uploads/' . $admin->photo));
             }
             $request->photo->move(public_path('uploads'), $final_name);
             $admin->photo = $final_name;
         }
 
-        if($request->password){
-            $request->validate([
-                'password' => 'required',
-                'confirm_password' => 'required|same:password',
-            ]);
+        // تحديث كلمة المرور
+        if ($request->filled('password')) {
             $admin->password = Hash::make($request->password);
         }
 
-        $admin->name = $request->name;
-        $admin->email = $request->email;
-        $admin->update();
+        // تحديث الاسم والإيميل فقط إذا أُرسلت
+        if ($request->filled('name')) {
+            $admin->name = $request->name;
+        }
+
+        if ($request->filled('email')) {
+            $admin->email = $request->email;
+        }
+
+        $admin->save();
 
         return redirect()->back()->with('success', 'Profile updated successfully');
     }

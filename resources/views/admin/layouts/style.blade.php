@@ -20,5 +20,12 @@
 
 
 {{-- إضافي --}}
-<link rel="stylesheet" href="{{ asset('dist-admin/css/iziToast.min.css') }}">
+<link rel="stylesheet" href="{{ asset('dist-main/css/iziToast.min.css') }}">
 
+<!-- DataTable Styles -->
+<link rel="stylesheet" href="{{ asset('dist-main/css/dataTables.bootstrap5.min.css') }}">
+
+<link rel="stylesheet" href="{{ asset('dist-main/css/custom.css') }}">
+
+<!-- sweetalert2 -->
+<link rel="stylesheet" href="{{ asset('dist-main/css/sweetalert2.all.min.css') }}">

@@ -3,10 +3,30 @@
 @section('main_content')
 @include('admin.layouts.nav')
 @include('admin.layouts.sidebar')
+<!-- start page content wrapper-->
+<div class="page-content-wrapper">
+
+    <!-- start page content-->
+    <div class="page-content">
+
+        <!--start breadcrumb-->
+        <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+            <div class="breadcrumb-title pe-3">لوحة التحكم</div>
+            <div class="ps-3">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0 p-0 align-items-center">
+                        <li class="breadcrumb-item"><a href="javascript:;"><ion-icon name="home-outline"></ion-icon></a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page"> الطلبات </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <!--end breadcrumb-->
 <div class="main-content">
     <section class="section">
         <div class="section-header d-flex justify-content-between">
-            <h1>Orders</h1>
+            <h1>الطلبات</h1>
         </div>
         <div class="section-body">
             <div class="row">
@@ -17,16 +37,16 @@
                                 <table class="table table-bordered" id="example1">
                                     <thead>
                                         <tr>
-                                            <th>SL</th>
-                                            <th>Invoice Id</th>
-                                            <th>Agent Info</th>
-                                            <th>Package Name</th>
-                                            <th>Price</th>
-                                            <th>Payent Date</th>
-                                            <th>Expire Date</th>
-                                            <th>Payment Method & Transaction Id</th>
-                                            <th>Status</th>
-                                            <th>Print Invoice</th>
+                                            <th>الرقم التسلسلي</th>
+                                            <th>رقم الطلب</th>
+                                            <th>معلومات الوكيل</th>
+                                            <th>اسم الباقة</th>
+                                            <th>السعر</th>
+                                            <th>تاريخ الدفع</th>
+                                            <th>تاريخ الانتهاء</th>
+                                            <th>طريقة الدفع & رقم العملية</th>
+                                            <th>الحالة</th>
+                                            <th>طباعة الفاتورة</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -36,7 +56,7 @@
                                             <td>
                                                 {{ $order->invoice_no }}<br>
                                                 @if($order->currently_active == 1)
-                                                <span class="badge bg-success">Currently Active</span>
+                                                <span class="badge bg-success">نشط حالياً</span>
                                                 @endif
                                             </td>
                                             <td>
@@ -73,4 +93,8 @@
         </div>
     </section>
 </div>
+    </div>
+    <!-- end page content-->
+</div>
+<!--end page content wrapper-->
 @endsection

@@ -8,7 +8,7 @@ File: style.css
 */
 
 
-/* 
+/*
 - General
 - Mini Sidebar
 - Submenu Wrapper
@@ -304,7 +304,7 @@ ion-icon {
 	.wrapper.toggled:not(.sidebar-hovered) .sidebar-wrapper .metismenu .has-arrow:after {
 		display: none
 	}
-	
+
 }
 
 
@@ -335,7 +335,7 @@ ion-icon {
     z-index: 5;
     transition: 0.3s all;
     box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 8%);
-   
+
 }
 
 .top-header .navbar {
@@ -373,7 +373,7 @@ ion-icon {
     background-color: #fff;
     border-color: #c27be4;
     box-shadow: 0 0 0 .25rem rgba(146, 62, 185, 0.3)
-    
+
 }
 
 .top-header .navbar .top-navbar-right .nav-link {
@@ -385,7 +385,7 @@ ion-icon {
 }
 
 .top-header .navbar .searchbar .search-icon {
-  
+
     color: #41464b;
     font-size: 1.2rem;
     opacity: 0.5;
@@ -663,12 +663,12 @@ ion-icon {
 .breadcrumb-title {
     font-size: 20px;
     border-left: 1.5px solid #ced3da;
-	
+
 }
 
 .page-breadcrumb .breadcrumb li.breadcrumb-item {
     font-size: 16px;
-	
+
 }
 
 .page-breadcrumb .breadcrumb li a {
@@ -1270,7 +1270,7 @@ ul.categories-list li {
 .social-login a {
     width: 50px;
     height: 50px;
-    
+
 }
 
 .social-login a img {
@@ -1377,7 +1377,7 @@ ul.categories-list li {
         border-left: 1px solid #eee;
         box-shadow: 0 0.125rem 0.5rem rgb(0 0 0 / 28%);
     }
-    
+
 }
 
 @media screen and (max-width:1024px) {
@@ -1385,11 +1385,11 @@ ul.categories-list li {
 
 
     .sidebar-wrapper {
-    
+
         right: -300px;
     }
 
-  
+
     .wrapper .page-content-wrapper {
 
         margin-right: 0px;
@@ -1397,7 +1397,7 @@ ul.categories-list li {
     }
 
     .top-header{
-      
+
         right: 0px;
     }
 
@@ -1405,11 +1405,11 @@ ul.categories-list li {
 
 
    .wrapper.toggled .sidebar-wrapper{
-    
+
         right: 0px;
     }
 
-    
+
     .wrapper.toggled .page-content-wrapper {
 
         margin-right: 0px;
@@ -1419,7 +1419,7 @@ ul.categories-list li {
     }
 
     .wrapper.toggled .top-header{
-      
+
         right: 0px;
     }
 
@@ -1444,7 +1444,7 @@ ul.categories-list li {
 	.top-header .navbar .searchbar {
 		display: none;
 	}
-	
+
 
 	.top-header .navbar .full-search-bar {
 		display: flex;
@@ -1462,7 +1462,7 @@ ul.categories-list li {
 		padding: 0 1.5rem;
 		-webkit-animation: .6s cubic-bezier(.25, .8, .25, 1) 0s normal forwards 1 animdropdown;
 	    animation: .6s cubic-bezier(.25, .8, .25, 1) 0s normal forwards 1 animdropdown
-		
+
 	}
 
 	.top-header .mobile-menu-button {
@@ -1480,7 +1480,7 @@ ul.categories-list li {
     .footer {
         right: 0px;
     }
-    
+
 
 }
 
@@ -1500,4 +1500,7 @@ ul.categories-list li {
         width: auto;
         height: auto;
     }
+}
+.table-img {
+    width: 100px;
 }

@@ -27,6 +27,7 @@
                     <div class="col-lg-5 col-xl-4 col-md-6 d-block mx-auto">
                         <div class="wrapper wrapper2">
                             <form id="login" class="card-body" tabindex="500" action="{{ route('login_submit') }}" method="post">
+                                @csrf
                                 <h3>Login</h3>
                                 <div class="mail">
                                     <input type="email" name="email">
