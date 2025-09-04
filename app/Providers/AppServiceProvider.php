@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
 
         // Share the setting data with all views
-        $setting_data = Setting::where('id', 1)->first();
-        view()->share('global_setting', $setting_data);
+        //$setting_data = Setting::where('id', 1)->first();
+        //view()->share('global_setting', $setting_data);
     }
 }
