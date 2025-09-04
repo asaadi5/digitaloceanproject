@@ -54,7 +54,7 @@
                                                     <td> {{ $loop->iteration }} </td>
                                                     <td>
                                                         @if($item->featured_photo != null)
-                                                            <img src="assets/images/products/estate1.jpg" alt="" class="table-img">
+                                                            <img src="{{ asset('uploads/'.$item->featured_photo) }}" alt="لا يوجد" class="table-img">
                                                         @endif
                                                     </td>
                                                     <td>{{ $item->name }}</td>

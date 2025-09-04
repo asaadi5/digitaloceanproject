@@ -74,12 +74,9 @@
                         </div>
                     </div>
                 </div>
-                @endforeach
-                <div class="col-md-12">
-                    {{ $properties->links() }}
-                </div>
-            @endif
+
         </div>
     </div>
 </div>
+
 @endsection

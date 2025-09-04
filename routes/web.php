@@ -31,11 +31,16 @@ Route::get('/pricing', [FrontController::class, 'pricing'])->name('pricing');
 Route::get('/property/{slug}', [FrontController::class, 'property_detail'])->name('property_detail');
 Route::post('/property/message/{id}', [FrontController::class, 'property_send_message'])->name('property_send_message');
 Route::get('/locations', [FrontController::class, 'locations'])->name('locations');
-Route::get('/location/{slug}', [FrontController::class, 'location'])->name('location');
+Route::get('/properties/{slug}', [FrontController::class, 'property_search'])->name('location');
 Route::get('/agents', [FrontController::class, 'agents'])->name('agents');
 Route::get('/agent/detail/{id}', [FrontController::class, 'agent'])->name('agent');
 Route::get('/blog', [FrontController::class, 'blog'])->name('blog');
+Route::get('/about_us', [FrontController::class, 'about_us'])->name('about_us');
 Route::get('/post/{slug}', [FrontController::class, 'post'])->name('post');
+Route::get('/properties/featured', [FrontController::class, 'property_search'])
+    ->name('properties_featured');
+Route::post('/post/{post}/comment', [FrontController::class, 'commentStore'])
+    ->name('post.comment.store');
 Route::get('/faq', [FrontController::class, 'faq'])->name('faq');
 Route::get('/terms', [FrontController::class, 'terms'])->name('terms');
 Route::get('/privacy', [FrontController::class, 'privacy'])->name('privacy');
@@ -43,6 +48,32 @@ Route::get('/privacy', [FrontController::class, 'privacy'])->name('privacy');
 Route::get('/wishlist-add/{id}', [FrontController::class, 'wishlist_add'])->name('wishlist_add');
 
 Route::get('/property-search', [FrontController::class, 'property_search'])->name('property_search');
+
+
+Route::prefix('properties')->name('properties.')->group(function () {
+    // صفحة البحث العامة: /properties
+    Route::get('/', [FrontController::class, 'property_search'])->name('index');
+
+    // فرض الغرض فقط: /properties/sale  أو  /properties/rent
+    Route::get('/{purpose}', [FrontController::class, 'property_search'])
+        ->where('purpose', 'sale|rent')
+        ->name('purpose');
+
+    // فئة رئيسية + (اختياري) نوع فرعي: /properties/residential  أو  /properties/residential/apartment
+    Route::get('/{category}/{type?}', [FrontController::class, 'property_search'])
+        ->where('category', 'residential|commercial|recreational|lands')
+        ->name('category');
+
+    // غرض + فئة + نوع (اختياري): /properties/sale/residential/apartment
+    Route::get('/{purpose}/{category}/{type?}', [FrontController::class, 'property_search'])
+        ->where([
+            'purpose'  => 'sale|rent',
+            'category' => 'residential|commercial|recreational|lands',
+        ])
+        ->name('purpose_category');
+});
+
+
 
 Route::post('/subscriber/send-email', [FrontController::class, 'subscriber_send_email'])->name('subscriber_send_email');
 Route::get('/subscriber/verify/{email}/{token}', [FrontController::class, 'subscriber_verify'])->name('subscriber_verify');
@@ -83,7 +114,7 @@ Route::middleware('agent')->prefix('agent')->group(function(){
     Route::get('/order', [AgentController::class, 'order'])->name('agent_order');
     Route::get('/payment', [AgentController::class, 'payment'])->name('agent_payment');
     Route::get('/invoice/{order_id}', [AgentController::class, 'invoice'])->name('agent_invoice');
-    
+
     Route::post('/paypal', [AgentController::class, 'paypal'])->name('agent_paypal');
     Route::get('/paypal-success', [AgentController::class, 'paypal_success'])->name('agent_paypal_success');
     Route::get('/paypal-cancel', [AgentController::class, 'paypal_cancel'])->name('agent_paypal_cancel');
@@ -210,7 +241,7 @@ Route::middleware('admin')->prefix('admin')->group(function(){
     Route::post('/subscriber/update/{id}', [AdminSubscriberController::class, 'update'])->name('admin_subscriber_update');
     Route::get('/subscriber/delete/{id}', [AdminSubscriberController::class, 'delete'])->name('admin_subscriber_delete');
     Route::get('/subscriber/export', [AdminSubscriberController::class, 'export'])->name('admin_subscriber_export');
-    
+
     Route::get('/page/index', [AdminPageController::class, 'index'])->name('admin_page_index');
     Route::post('/page/update', [AdminPageController::class, 'update'])->name('admin_page_update');
 

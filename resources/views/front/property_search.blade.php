@@ -1,214 +1,320 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Property Listing</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="property-result">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-4 col-md-12">
-                <form action="{{ route('property_search') }}" method="get">
-                <div class="property-filter">
-                    <div class="widget">
-                        <h2>Find Anything</h2>
-                        <input type="text" name="name" class="form-control" placeholder="Search By Name ..." value="{{ $form_name }}">
-                    </div>
-
-                    <div class="widget">
-                        <h2>Location</h2>
-                        <select name="location" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Location</option>
-                            @foreach($locations as $location)
-                                <option value="{{ $location->id }}" @if($form_location == $location->id) selected @endif>{{ $location->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Type</h2>
-                        <select name="type" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Type</option>
-                            @foreach($types as $type)
-                                <option value="{{ $type->id }}" @if($form_type == $type->id) selected @endif>{{ $type->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Purpose</h2>
-                        <select name="purpose" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Purpose</option>
-                            <option value="Rent" @if($form_purpose == 'Rent') selected @endif>For Rent</option>
-                            <option value="Sale" @if($form_purpose == 'Sale') selected @endif>For Sale</option>
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Amenities</h2>
-                        <select name="amenity" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Amenity</option>
-                            @foreach($amenities as $amenity)
-                                <option value="{{ $amenity->id }}" @if($form_amenity == $amenity->id) selected @endif>{{ $amenity->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Bedrooms</h2>
-                        <select name="bedroom" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Bedroom</option>
-                            @for($i=1;$i<=50;$i++)
-                                <option value="{{ $i }}" @if($form_bedroom == $i) selected @endif>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Bathrooms</h2>
-                        <select name="bathroom" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Bathroom</option>
-                            @for($i=1;$i<=50;$i++)
-                                <option value="{{ $i }}" @if($form_bathroom == $i) selected @endif>{{ $i }}</option>
-                            @endfor
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Min Price</h2>
-                        <select name="min_price" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Minimum Price</option>
-                            <option value="1" @if($form_min_price == '1') selected @endif>1</option>
-                            <option value="1000" @if($form_min_price == '1000') selected @endif>1000</option>
-                            <option value="2000" @if($form_min_price == '2000') selected @endif>2000</option>
-                            <option value="3000" @if($form_min_price == '3000') selected @endif>3000</option>
-                            <option value="5000" @if($form_min_price == '5000') selected @endif>5000</option>
-                            <option value="10000" @if($form_min_price == '10000') selected @endif>10000</option>
-                            <option value="20000" @if($form_min_price == '20000') selected @endif>20000</option>
-                            <option value="30000" @if($form_min_price == '30000') selected @endif>30000</option>
-                            <option value="50000" @if($form_min_price == '50000') selected @endif>50000</option>
-                            <option value="60000" @if($form_min_price == '60000') selected @endif>60000</option>
-                            <option value="70000" @if($form_min_price == '70000') selected @endif>70000</option>
-                            <option value="80000" @if($form_min_price == '80000') selected @endif>80000</option>
-                            <option value="90000" @if($form_min_price == '90000') selected @endif>90000</option>
-                            <option value="100000" @if($form_min_price == '100000') selected @endif>100000</option>
-                            <option value="500000" @if($form_min_price == '500000') selected @endif>500000</option>
-                            <option value="1000000" @if($form_min_price == '1000000') selected @endif>1000000</option>
-                            <option value="2000000" @if($form_min_price == '2000000') selected @endif>2000000</option>
-                        </select>
-                    </div>
-
-                    <div class="widget">
-                        <h2>Max Price</h2>
-                        <select name="max_price" class="form-control select2" onchange="this.form.submit()">
-                            <option value="">Select Maximum Price</option>
-                            <option value="1" @if($form_min_price == '1') selected @endif>1</option>
-                            <option value="1000" @if($form_max_price == '1000') selected @endif>1000</option>
-                            <option value="2000" @if($form_max_price == '2000') selected @endif>2000</option>
-                            <option value="3000" @if($form_max_price == '3000') selected @endif>3000</option>
-                            <option value="5000" @if($form_max_price == '5000') selected @endif>5000</option>
-                            <option value="10000" @if($form_max_price == '10000') selected @endif>10000</option>
-                            <option value="20000" @if($form_max_price == '20000') selected @endif>20000</option>
-                            <option value="30000" @if($form_max_price == '30000') selected @endif>30000</option>
-                            <option value="50000" @if($form_max_price == '50000') selected @endif>50000</option>
-                            <option value="60000" @if($form_max_price == '60000') selected @endif>60000</option>
-                            <option value="70000" @if($form_max_price == '70000') selected @endif>70000</option>
-                            <option value="80000" @if($form_max_price == '80000') selected @endif>80000</option>
-                            <option value="90000" @if($form_max_price == '90000') selected @endif>90000</option>
-                            <option value="100000" @if($form_max_price == '100000') selected @endif>100000</option>
-                            <option value="500000" @if($form_max_price == '500000') selected @endif>500000</option>
-                            <option value="1000000" @if($form_max_price == '1000000') selected @endif>1000000</option>
-                            <option value="2000000" @if($form_max_price == '2000000') selected @endif>2000000</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-button">
-                        <button type="submit" class="btn btn-primary">Filter</button>
+    <!--Breadcrumb-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="../assets/images/banners/banner2.jpg">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">{{ $pageTitle ?? 'نتائج البحث' }}</h1>
                     </div>
                 </div>
-                </form>
             </div>
-            <div class="col-lg-8 col-md-12">
-                <div class="property">
-                    <div class="container">
-                        <div class="row">
+        </div>
+    </section>
+    <!--/Breadcrumb-->
 
-                            @if($properties->count() == 0)
-                            <div class="text-danger">No Property Found</div>
-                            @else
-                            @foreach($properties as $item)
-                            <div class="col-lg-6 col-md-6 col-sm-12">
-                                <div class="item">
-                                    <div class="photo">
-                                        <img class="main" src="{{ asset('uploads/'.$item->featured_photo) }}" alt="">
-                                        <div class="top">
-                                            @if($item->purpose == 'Sale')
-                                            <div class="status-sale">
-                                                For Sale
-                                            </div>
-                                            @else
-                                            <div class="status-rent">
-                                                For Rent
-                                            </div>
-                                            @endif
-                                            @if($item->is_featured == 'Yes')
-                                            <div class="featured">
-                                                Featured
-                                            </div>
-                                            @endif
-                                        </div>
-                                        <div class="price">${{ $item->price }}</div>
-                                        <div class="wishlist"><a href=""><i class="far fa-heart"></i></a></div>
+    <!--Add listing-->
+    <section class="sptb">
+        <div class="container">
+            <div class="row">
+                <!--Left Side Content-->
+                <div class="col-xl-3 col-lg-4 col-md-12">
+                    {{-- كرت البحث العلوي كما هو --}}
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control br-tl-3  br-bl-3" name="name" form="filterForm" value="{{ request('name') }}" placeholder="بحث">
+                                <button type="submit" form="filterForm" class="btn btn-primary br-tr-3  br-br-3">بحث</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- كرت الفلاتر --}}
+                    <form id="filterForm" method="get" action="{{ url()->current() }}">
+                        <div class="card">
+                            {{-- ===== الفئات ===== --}}
+                            <div class="card-header">
+                                <h3 class="card-title">الفئات</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="container">
+                                    <div class="filter-product-checkboxs">
+                                        @php
+                                            use App\Models\Type;
+
+                                            // النوع المختار حالياً
+                                            $selType = request('type');
+
+                                            // جلب كل الأنواع الفرعية مع عدد العقارات
+                                            // يمكنك تقييدها بأنواع محددة لو لزم
+                                            $types = Type::withCount('properties')->orderBy('name','asc')->where('id', '>=', 5)->get(['id','name']);
+
+                                            // مجموعات أنواع لإظهار حقول الغرف/الحمامات
+                                            // السكني parent_id=1 ، الترفيهي parent_id=3 (عدّل الأرقام إذا مختلفة لديك)
+                                            $resiTypeIds  = Type::where('parent_id', 1)->pluck('id')->toArray();
+                                            $recreTypeIds = Type::where('parent_id', 3)->pluck('id')->toArray();
+
+                                            $showRooms = $selType && (in_array((int)$selType, $resiTypeIds, true) || in_array((int)$selType, $recreTypeIds, true));
+                                        @endphp
+
+                                        @foreach($types as $t)
+                                            <label class="custom-control custom-checkbox mb-3">
+                                                {{-- نحافظ على الشكل، ونستعمل راديو لاختيار نوع واحد (الشكل يبقى كما هو) --}}
+                                                <input type="radio" class="custom-control-input" name="type" value="{{ $t->id }}" {{ (string)$selType === (string)$t->id ? 'checked' : '' }}>
+                                                <span class="custom-control-label">
+                                    <span class="text-dark">
+                                        {{ $t->name }}
+                                        <span class="label label-secondary float-end">{{ $t->properties_count }}</span>
+                                    </span>
+                                </span>
+                                            </label>
+                                        @endforeach
+
+                                        {{-- خيار "الكل" --}}
+                                        <label class="custom-control custom-checkbox mb-0">
+                                            <input type="radio" class="custom-control-input" name="type" value="" {{ $selType ? '' : 'checked' }}>
+                                            <span class="custom-control-label">
+                                <span class="text-dark">الكل</span>
+                            </span>
+                                        </label>
                                     </div>
-                                    <div class="text">
-                                        <h3><a href="{{ route('property_detail',$item->slug) }}">{{ $item->name }}</a></h3>
-                                        <div class="detail">
-                                            <div class="stat">
-                                                <div class="i1">{{ $item->size }} sqft</div>
-                                                <div class="i2">{{ $item->bedroom }} Bed</div>
-                                                <div class="i3">{{ $item->bathroom }} Bath</div>
-                                            </div>
-                                            <div class="address">
-                                                <i class="fas fa-map-marker-alt"></i> {{ $item->address }}
-                                            </div>
-                                            <div class="type-location">
-                                                <div class="i1">
-                                                    <i class="fas fa-edit"></i> {{ $item->type->name }}
-                                                </div>
-                                                <div class="i2">
-                                                    <i class="fas fa-location-arrow"></i> {{ $item->location->name }}
-                                                </div>
-                                            </div>
-                                            <div class="agent-section">
-                                                @if($item->agent->photo != null)
-                                                <img class="agent-photo" src="{{ asset('uploads/'.$item->agent->photo) }}" alt="">
-                                                @else
-                                                <img class="agent-photo" src="{{ asset('uploads/default.png') }}" alt="">
-                                                @endif
-                                                <a href="{{ route('agent',$item->agent->id) }}">{{ $item->agent->name }} ({{ $item->agent->company }})</a>
+                                </div>
+                            </div>
+
+                            {{-- ===== نطاق السعر (حقلا عدد فقط) ===== --}}
+                            <div class="card-header border-top">
+                                <h3 class="card-title"> نطاق السعر </h3>
+                            </div>
+                            <div class="card-body">
+                                <h6><label> نطاق السعر : </label></h6>
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="number" class="form-control" name="price_min" value="{{ request('price_min') }}" placeholder="الحد الأدنى">
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" class="form-control" name="price_max" value="{{ request('price_max') }}" placeholder="الحد الأعلى">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- ===== الحالة ===== --}}
+                            <div class="card-body">
+                                <div class="filter-product-checkboxs">
+                                    @php $purposes = (array)request('purpose_in',[]); @endphp
+                                    <label class="custom-control custom-checkbox mb-2">
+                                        <input type="checkbox" class="custom-control-input" name="purpose_in[]" value="rent" {{ in_array('rent',$purposes) ? 'checked' : '' }}>
+                                        <span class="custom-control-label">للإيجار</span>
+                                    </label>
+                                    <label class="custom-control custom-checkbox mb-2">
+                                        <input type="checkbox" class="custom-control-input" name="purpose_in[]" value="sale" {{ in_array('sale',$purposes) ? 'checked' : '' }}>
+                                        <span class="custom-control-label">للبيع</span>
+                                    </label>
+
+                                </div>
+                            </div>
+
+                            {{-- ===== الغرف/الحمامات (تظهر فقط للسكني أو الترفيهي) ===== --}}
+                            @if($showRooms)
+                                <div class="card-header border-top">
+                                    <h3 class="card-title">الخصائص</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2">
+                                        <div class="col">
+                                            <input type="number" class="form-control" name="bedroom" value="{{ request('bedroom') }}" placeholder="غرف">
+                                        </div>
+                                        <div class="col">
+                                            <input type="number" class="form-control" name="bathroom" value="{{ request('bathroom') }}" placeholder="حمامات">
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary btn-block">تطبيق الفلتر</button>
+                            </div>
+                        </div>
+                    </form>
+
+
+                </div>
+
+                <!--/Left Side Content-->
+
+                <div class="col-xl-9 col-lg-8 col-md-12">
+                    <!--Add lists-->
+                    <div class=" mb-lg-0">
+                        <div class="">
+                            <div class="item2-gl ">
+                                <div class=" mb-0">
+                                    <div class="">
+                                        <div class="p-5 bg-white item2-gl-nav d-flex border br-5">
+                                            <h6 class="mb-0 mt-2">
+                                                عرض {{ $properties->count() }} من {{ $properties->total() }}
+                                            </h6>
+                                            <ul class="nav item2-gl-menu ms-auto mt-2">
+                                                <li class="">
+                                                    <a href="#tab-11" class="" data-bs-toggle="tab" title="List style"><i class="fa fa-list"></i></a>
+                                                </li>
+                                                <li>
+                                                    <a href="#tab-12" data-bs-toggle="tab" class="active show" title="Grid"><i class="fa fa-th"></i></a>
+                                                </li>
+                                            </ul>
+                                            <div class="d-flex">
+                                                <label class="me-2 mt-1 mb-sm-1 pt-2">ترتيب حسب : </label>
+                                                <form method="get" action="{{ url()->current() }}" class="d-flex">
+                                                    @foreach(request()->except('sort') as $k=>$v)
+                                                        @if(is_array($v))
+                                                            @foreach($v as $vv)
+                                                                <input type="hidden" name="{{ $k }}[]" value="{{ $vv }}">
+                                                            @endforeach
+                                                        @else
+                                                            <input type="hidden" name="{{ $k }}" value="{{ $v }}">
+                                                        @endif
+                                                    @endforeach
+                                                    <select name="sort" class="form-control select-sm w-75 select2" onchange="this.form.submit()">
+                                                        <option value="newest"     {{ request('sort','newest')==='newest' ? 'selected' : '' }}>الأحدث</option>
+                                                        <option value="oldest"     {{ request('sort')==='oldest' ? 'selected' : '' }}>الأقدم</option>
+                                                        <option value="price_asc"  {{ request('sort')==='price_asc' ? 'selected' : '' }}>السعر : من الأدنى للأعلى</option>
+                                                        <option value="price_desc" {{ request('sort')==='price_desc' ? 'selected' : '' }}>السعر : من الأعلى للأدنى</option>
+                                                    </select>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="tab-content">
+                                    {{-- تبويب القائمة (List) --}}
+                                    <div class="tab-pane" id="tab-11">
+                                        @forelse($properties as $p)
+                                            @php
+                                                $type     = optional($p->type);
+                                                $parentId = (int) ($type->parent_id ?? 0);
+
+                                                $isResi   = ($parentId === 1); // سكني
+                                                $isRecre  = ($parentId === 3); // ترفيهي
+                                                $typeName = trim((string) ($type->name ?? ''));
+
+                                                // الغرف/الحمامات فقط للسكني + الترفيهي
+                                                $showRooms = $isResi || $isRecre;
+
+                                                // المواقف فقط للفيلا + المكتب + المحل/الدكان
+                                                $garageAllowed = ['فيلا','مكتب','محل','محل تجاري','دكان'];
+                                                $showGarage = in_array($typeName,$garageAllowed,true);
+                                            @endphp
+
+                                            <div class="card overflow-hidden">
+                                                <div class="d-md-flex">
+                                                    <div class="item-card9-img">
+                                                        <div class="arrow-ribbon {{ in_array($p->purpose,['rent','إيجار']) ? 'bg-info':'bg-success' }}">
+                                                            {{ number_format($p->price) }}
+                                                        </div>
+                                                        <div class="item-card9-imgs">
+                                                            <a href="{{ route('property_detail',$p->slug) }}"></a>
+                                                            <img src="{{ asset('uploads/'.$p->featured_photo) }}" alt="{{ $p->name }}" class="cover-image">
+                                                        </div>
+                                                        <div class="item-tags">
+                                                            <div class="{{ in_array($p->purpose,['rent','إيجار']) ? 'bg-info':'bg-success' }} tag-option">
+                                                                {{ in_array($p->purpose,['rent','إيجار']) ? 'للإيجار' : 'للبيع' }}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="card border-0 mb-0">
+                                                        <div class="card-body ">
+                                                            <div class="item-card9">
+                                                                <a href="{{ route('property_detail',$p->slug) }}" class="text-dark"><h4 class="font-weight-bold mt-1">{{ $p->name }}</h4></a>
+                                                                <ul class="item-card2-list">
+                                                                    @if($p->size)<li><i class="fa fa-arrows-alt text-muted me-1"></i> {{ $p->size }} متر²</li>@endif
+                                                                    @if($showRooms && $p->bedroom)<li><i class="fa fa-bed text-muted me-1"></i> {{ $p->bedroom }} غرف</li>@endif
+                                                                    @if($showRooms && $p->bathroom)<li><i class="fa fa-bath text-muted me-1"></i> {{ $p->bathroom }} حمام</li>@endif
+                                                                    @if($showGarage && $p->garage)<li><i class="fa fa-car text-muted me-1"></i> {{ $p->garage }} {{ $p->garage==1?'موقف':'مواقف' }}</li>@endif
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-footer pt-4 pb-4">
+                                                            <div class="item-card9-footer d-flex">
+                                                                <div class="item-card9-cost"><span><i class="fa fa-map-marker text-muted me-1"></i> {{ $p->address }}</span></div>
+                                                                <div class="ms-auto"><span><i class="fa fa-calendar-o text-muted me-1"></i> {{ optional($p->created_at)->diffForHumans() }}</span></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="card"><div class="card-body text-center py-6">لا توجد نتائج مطابقة لبحثك.</div></div>
+                                        @endforelse
+                                    </div>
+
+                                    {{-- تبويب الشبكة (Grid) --}}
+                                    <div class="tab-pane active" id="tab-12">
+                                        <div class="row">
+                                            @forelse ($properties as $p)
+                                                @php
+                                                    $type     = optional($p->type);
+                                                    $parentId = (int) ($type->parent_id ?? 0);
+
+                                                    $isResi   = ($parentId === 1);
+                                                    $isRecre  = ($parentId === 3);
+                                                    $typeName = trim((string) ($type->name ?? ''));
+
+                                                    $showRooms = $isResi || $isRecre;
+                                                    $garageAllowed = ['فيلا','مكتب','محل','محل تجاري','دكان'];
+                                                    $showGarage = in_array($typeName,$garageAllowed,true);
+                                                @endphp
+
+                                                <div class="col-lg-6 col-md-12 col-xl-4">
+                                                    <div class="card overflow-hidden">
+                                                        <div class="item-card9-img">
+                                                            <div class="arrow-ribbon {{ in_array($p->purpose,['rent','إيجار']) ? 'bg-info':'bg-success' }}">{{ number_format($p->price) }}</div>
+                                                            <div class="item-card9-imgs">
+                                                                <a href="{{ route('property_detail',$p->slug) }}"></a>
+                                                                <img src="{{ asset('uploads/'.$p->featured_photo) }}" alt="{{ $p->name }}" class="cover-image">
+                                                            </div>
+                                                            <div class="item-tags">
+                                                                <div class="{{ in_array($p->purpose,['rent','إيجار']) ? 'bg-info':'bg-success' }} tag-option">
+                                                                    {{ in_array($p->purpose,['rent','إيجار']) ? 'للإيجار' : 'للبيع' }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body">
+                                                            <div class="item-card9">
+                                                                <a href="{{ route('property_detail',$p->slug) }}" class="text-dark"><h4 class="font-weight-bold mt-1">{{ $p->name }}</h4></a>
+                                                                <ul class="item-card2-list">
+                                                                    @if($p->size)<li><i class="fa fa-arrows-alt text-muted me-1"></i> {{ $p->size }} متر²</li>@endif
+                                                                    @if($showRooms && $p->bedroom)<li><i class="fa fa-bed text-muted me-1"></i> {{ $p->bedroom }} غرف</li>@endif
+                                                                    @if($showRooms && $p->bathroom)<li><i class="fa fa-bath text-muted me-1"></i> {{ $p->bathroom }} حمام</li>@endif
+                                                                    @if($showGarage && $p->garage)<li><i class="fa fa-car text-muted me-1"></i> {{ $p->garage }} {{ $p->garage==1?'موقف':'مواقف' }}</li>@endif
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-footer">
+                                                            <div class="item-card9-footer d-flex">
+                                                                <div class="item-card9-cost"><span><i class="fa fa-map-marker text-muted me-1"></i> {{ $p->address }}</span></div>
+                                                                <div class="ms-auto"><span><i class="fa fa-calendar-o text-muted me-1"></i> {{ optional($p->created_at)->diffForHumans() }}</span></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <div class="col-12">
+                                                    <div class="card"><div class="card-body text-center py-6">لا توجد نتائج مطابقة لبحثك.</div></div>
+                                                </div>
+                                            @endforelse
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            @endforeach
-                            <div class="col-lg-12 col-md-12 col-sm-12">
-                                {{ $properties->appends($_GET)->links() }}
-                            </div>
-                            @endif
+                            <div class="center-block text-center">{{ $properties->onEachSide(1)->links() }}</div>
                         </div>
                     </div>
+                    <!--/Add lists-->
                 </div>
+
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--/Add Listings-->
 @endsection

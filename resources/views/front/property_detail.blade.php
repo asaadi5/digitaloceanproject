@@ -1,358 +1,525 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>{{ $property->name }}</h2>
+    <!--Breadcrumb-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="{{ asset('uploads/' . $global_setting->banner) }}">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">تفاصيل العقار</h1>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--/Breadcrumb-->
 
-<div class="property-result pt_50 pb_50">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 col-md-12">
-                <div class="left-item">
-                    <div class="main-photo">
-                        <img src="{{ asset('uploads/'.$property->featured_photo) }}" alt="">
-                    </div>
-                    <h2>
-                        Description
-                    </h2>
-                    {!! $property->description !!}
-                </div>
-                <div class="left-item">
-                    <h2>
-                        Photos
-                    </h2>
-                    <div class="photo-all">
-                        <div class="row">
-                            @if($property->photos->count() == 0)
-                                <span class="text-danger">No Photos Available</span>
-                            @else
-                                @foreach($property->photos as $photo)
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="item">
-                                        <a href="{{ asset('uploads/'.$photo->photo) }}" class="magnific">
-                                            <img src="{{ asset('uploads/'.$photo->photo) }}" alt="">
-                                            <div class="icon">
-                                                <i class="fas fa-plus"></i>
-                                            </div>
-                                            <div class="bg"></div>
-                                        </a>
-                                    </div>
-                                </div>
-                                @endforeach
-                            @endif
+    <section class="sptb">
+        <div class="container">
+            <div class="row">
+                <!-- يسار: المحتوى الرئيسي -->
+                <div class="col-xl-8 col-lg-8 col-md-12">
+
+                    <!--Classified Description-->
+                    <div class="card overflow-hidden">
+                        <div class="ribbon ribbon-top-right">
+                            <span class="{{ $isRent ? 'bg-warning' : 'bg-success' }}">
+                            {{ $isRent ? 'للإيجار' : 'للبيع' }}
+                            </span>
                         </div>
-                    </div>
-                </div>
-                <div class="left-item">
-                    <h2>
-                        Videos
-                    </h2>
-                    <div class="video-all">
-                        <div class="row">
-                            @if($property->videos->count() == 0)
-                                <span class="text-danger">No Videos Available</span>
-                            @else
-                                @foreach($property->videos as $video)
-                                <div class="col-md-6 col-lg-4">
-                                    <div class="item">
-                                        <a class="video-button" href="http://www.youtube.com/watch?v={{ $video->video }}">
-                                            <img src="http://img.youtube.com/vi/{{ $video->video }}/0.jpg" alt="" />
-                                            <div class="icon">
-                                                <i class="far fa-play-circle"></i>
-                                            </div>
-                                            <div class="bg"></div>
+
+                        <div class="card-body">
+                            <div class="item-det mb-4">
+                                <a href="javascript:void(0);" class="text-dark">
+                                    <h3 class="">{{ $property->name }}</h3>
+                                </a>
+                                <ul class="d-flex">
+                                    <li class="me-5">
+                                        <a href="javascript:void(0);" class="icons">
+                                            <i class="icon icon-briefcase text-muted me-1"></i> {{ optional($property->type)->name }}
                                         </a>
+                                    </li>
+                                    <li class="me-5">
+                                        <a href="javascript:void(0);" class="icons">
+                                            <i class="icon icon-location-pin text-muted me-1"></i> {{ optional($property->location)->name }}
+                                        </a>
+                                    </li>
+                                    <li class="me-5">
+                                        <a href="javascript:void(0);" class="icons">
+                                            <i class="icon icon-calendar text-muted me-1"></i> {{ optional($property->created_at)->diffForHumans() }}
+                                        </a>
+                                    </li>
+                                    <li class="me-5">
+                                        <a href="javascript:void(0);" class="icons">
+                                            <i class="icon icon-eye text-muted me-1"></i> {{ num($property->total_views ?? 0) }}
+                                        </a>
+                                    </li>
+                                    {{-- تقييم ثابت شكلي كما في القالب --}}
+
+                                </ul>
+                            </div>
+
+                            {{-- المعرض بنفس الشكل --}}
+                            <div class="product-slider carousel-slide-1">
+                                <div id="carouselFade" class="carousel slide carousel-fade" data-bs-ride="carousel"
+                                     data-bs-loop="false" data-bs-thumb="true" data-bs-dots="false">
+                                    <div class="arrow-ribbon2 bg-primary">
+                                        {{ num($property->price) }} $
+
                                     </div>
-                                </div>
-                                @endforeach
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <div class="left-item mb_50">
-                    <h2>Share</h2>
-                    <div class="share">
-                        @php
-                        $url = url('property/'.$property->slug);
-                        $photo = asset('uploads/'.$property->featured_photo);
-                        @endphp
-                        <a class="facebook" href="https://www.facebook.com/sharer/sharer.php?u={{ $url }}&picture={{ $photo }}" target="_blank">
-                            Facebook
-                        </a>
-                        <a class="twitter" href="https://twitter.com/share?url={{ $url }}&text={{ $property->name }}" target="_blank">
-                            Twitter
-                        </a>
-                        <a class="linkedin" href="https://www.linkedin.com/shareArticle?mini=true&url={{ $url }}&title={{ $property->name }}&summary={{ $property->description }}" target="_blank">
-                            LinkedIn
-                        </a>
-                    </div>
-                </div>
-
-
-                <div class="left-item">
-                    <h2>
-                        Related Properties
-                    </h2>
-                    <div class="property related-property pt_0 pb_0">
-                        <div class="row">
-                            @php
-                            $related_properties = \App\Models\Property::where('type_id', $property->type_id)
-                                ->where('id', '!=', $property->id)
-                                ->orderBy('id', 'desc')
-                                ->where('status', 'Active')
-                                ->take(2)
-                                ->get();    
-                            @endphp
-                            @if($related_properties->count() == 0)
-                                <span class="text-danger">No Related Properties Found</span>
-                            @else
-                                @foreach($related_properties as $item)
-                                <div class="col-lg-6 col-md-6 col-sm-12">
-                                    <div class="item">
-                                        <div class="photo">
-                                            <img class="main" src="{{ asset('uploads/'.$item->featured_photo) }}" alt="">
-                                            <div class="top">
-                                                @if($item->purpose == 'Sale')
-                                                <div class="status-sale">
-                                                    For Sale
-                                                </div>
-                                                @else
-                                                <div class="status-rent">
-                                                    For Rent
-                                                </div>
-                                                @endif
-                                                @if($item->is_featured == 'Yes')
-                                                <div class="featured">
-                                                    Featured
-                                                </div>
-                                                @endif
+                                    <div class="carousel-inner slide-show-image" id="full-gallery">
+                                        @php $first = true; @endphp
+                                        @forelse($property->photos as $ph)
+                                            <div class="carousel-item {{ $first ? 'active' : '' }}">
+                                                <img src="{{ asset('uploads/'.$ph->photo) }}" alt="img">
                                             </div>
-                                            <div class="price">${{ $item->price }}</div>
-                                            <div class="wishlist"><a href=""><i class="far fa-heart"></i></a></div>
-                                        </div>
-                                        <div class="text">
-                                            <h3><a href="{{ route('property_detail',$item->slug) }}">{{ $item->name }}</a></h3>
-                                            <div class="detail">
-                                                <div class="stat">
-                                                    <div class="i1">{{ $item->size }} sqft</div>
-                                                    <div class="i2">{{ $item->bedroom }} Bed</div>
-                                                    <div class="i3">{{ $item->bathroom }} Bath</div>
-                                                </div>
-                                                <div class="address">
-                                                    <i class="fas fa-map-marker-alt"></i> {{ $item->address }}
-                                                </div>
-                                                <div class="type-location">
-                                                    <div class="i1">
-                                                        <i class="fas fa-edit"></i> {{ $item->type->name }}
-                                                    </div>
-                                                    <div class="i2">
-                                                        <i class="fas fa-location-arrow"></i> {{ $item->location->name }}
-                                                    </div>
-                                                </div>
-                                                <div class="agent-section">
-                                                    @if($item->agent->photo != null)
-                                                    <img class="agent-photo" src="{{ asset('uploads/'.$item->agent->photo) }}" alt="">
-                                                    @else
-                                                    <img class="agent-photo" src="{{ asset('uploads/default.png') }}" alt="">
-                                                    @endif
-                                                    <a href="">{{ $item->agent->name }} ({{ $item->agent->company }})</a>
-                                                </div>
+                                            @php $first = false; @endphp
+                                        @empty
+                                            <div class="carousel-item active">
+                                                <img src="{{ asset('uploads/'.$property->featured_photo) }}" alt="img">
                                             </div>
+                                        @endforelse
+                                        <div class="thumbcarousel">
+                                            <a class="carousel-control-prev" href="#carouselFade" role="button" data-bs-slide="prev">
+                                                <i class="fa fa-angle-left" aria-hidden="true"></i>
+                                            </a>
+                                            <a class="carousel-control-next" href="#carouselFade" role="button" data-bs-slide="next">
+                                                <i class="fa fa-angle-right" aria-hidden="true"></i>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            @endif
+                            </div>
+                            {{-- /المعرض --}}
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-12">
 
-                <div class="right-item">
-                    <h2>Agent</h2>
-                    <div class="agent-right d-flex justify-content-start">
-                        <div class="left">
-                            @if($property->agent->photo != null)
-                            <img src="{{ asset('uploads/'.$property->agent->photo) }}" alt="">
-                            @else
-                            <img src="{{ asset('uploads/default.png') }}" alt="">
-                            @endif
-                        </div>
-                        <div class="right">
-                            <h3><a href="">{{ $property->agent->name }}</a></h3>
-                            <h4>{{ $property->agent->designation }}</h4>
-                        </div>
-                    </div>
-                    <div class="table-responsive mt_25">
-                        <table class="table table-bordered">
-                            <tr>
-                                <td>Posted On: </td>
-                                <td>
-                                    {{ $property->created_at->format('d M, Y') }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Email: </td>
-                                <td>{{ $property->agent->email }}</td>
-                            </tr>
+                    <div class="border-0">
+                        <div class="wideget-user-tab wideget-user-tab3">
+                            <div class="tab-menu-heading">
+                                <div class="tabs-menu1">
+                                    <ul class="nav">
+                                        <li class=""><a href="#tab-1" class="active" data-bs-toggle="tab">الوصف</a></li>
+                                        <li><a href="#tab-3" data-bs-toggle="tab" class="">المواصفات</a></li>
+                                        <li><a href="#tab-4" data-bs-toggle="tab" class="">معلومات إضافية</a></li>
+                                        <li><a href="#tab-5" data-bs-toggle="tab" class="">فيديو</a></li>
 
-                            @if($property->agent->phone != '')
-                            <tr>
-                                <td>Phone: </td>
-                                <td>{{ $property->agent->phone }}</td>
-                            </tr>
-                            @endif
-
-                            @if($property->agent->facebook != '' || $property->agent->twitter != '' || $property->agent->instagram != '' || $property->agent->linkedin != '')
-                            <tr>
-                                <td>Social: </td>
-                                <td>
-                                    <ul class="agent-ul">
-                                        @if($property->agent->facebook != '')
-                                        <li><a href="{{ $property->agent->facebook }}"><i class="fab fa-facebook-f"></i></a></li>
+                                        {{-- يظهران فقط عند الإيجار --}}
+                                        @if(!$isRent && $property->documents->isNotEmpty())
+                                            <li><a href="#tab-docs" data-bs-toggle="tab" class="">الوثائق</a></li>
                                         @endif
-                                        @if($property->agent->twitter != '')
-                                        <li><a href="{{ $property->agent->twitter }}"><i class="fab fa-twitter"></i></a></li>
-                                        @endif
-                                        @if($property->agent->instagram != '')
-                                        <li><a href="{{ $property->agent->instagram }}"><i class="fab fa-instagram"></i></a></li>
-                                        @endif
-                                        @if($property->agent->linkedin != '')
-                                        <li><a href="{{ $property->agent->linkedin }}"><i class="fab fa-linkedin-in"></i></a></li>
+                                        @if($isRent )
+                                            <li><a href="#tab-rules" data-bs-toggle="tab" class="">شروط الإيجار</a></li>
                                         @endif
                                     </ul>
-                                </td>
-                            </tr>
-                            @endif
-                        </table>
-                    </div>
-                </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="right-item">
-                    <h2>Features</h2>
-                    <div class="summary">
-                        <div class="table-responsive">
-                            <table class="table table-bordered">
-                                <tr>
-                                    <td><b>Price</b></td>
-                                    <td>${{ $property->price }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Location</b></td>
-                                    <td>
-                                        {{ $property->location->name }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><b>Type</b></td>
-                                    <td>
-                                        {{ $property->type->name }}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><b>Purpose</b></td>
-                                    <td>{{ $property->purpose }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Bedroom:</b></td>
-                                    <td>{{ $property->bedroom }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Bathroom:</b></td>
-                                    <td>{{ $property->bathroom }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Size:</b></td>
-                                    <td>{{ $property->size }} sqft</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Floor:</b></td>
-                                    <td>{{ $property->floor }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Garage:</b></td>
-                                    <td>{{ $property->garage }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Balcony:</b></td>
-                                    <td>{{ $property->balcony }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Address:</b></td>
-                                    <td>{{ $property->address }}</td>
-                                </tr>
-                                <tr>
-                                    <td><b>Built Year:</b></td>
-                                    <td>{{ $property->built_year }}</td>
-                                </tr>
-                            </table>
+                        <div class="tab-content border br-tr-3 br-tl-3 p-5 bg-white details-tab-content">
+                            {{-- الوصف + جدول مواصفات مختصر (كما في الشكل الأصلي تمامًا) --}}
+                            <div class="tab-pane active" id="tab-1">
+                                <h3 class="card-title mb-3 font-weight-semibold">الوصف</h3>
+                                <div class="mb-4">
+                                    <p>{!! nl2br(e($property->description)) !!}</p>
+                                </div>
+
+                                <h4 class="mb-4">مواصفات مختصرة</h4>
+                                <div class="row">
+                                    <div class="col-xl-12 col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered border-top mb-0">
+                                                <tbody>
+                                                <tr>
+                                                    <td>النوع</td>
+                                                    <td><span class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الإدراج بواسطة</td>
+                                                    <td><span class="font-weight-bold">{{ optional($property->agent)->name ?? 'مُعلن' }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>غرف النوم</td>
+                                                    <td><span class="font-weight-bold">{{ num($property->bedroom) }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الحمّامات</td>
+                                                    <td><span class="font-weight-bold">{{ num($property->bathroom) }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>التأثيث</td>
+                                                    <td><span class="font-weight-bold">{{ $property->furnished ?? '-' }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مواقف سيارات</td>
+                                                    <td><span class="font-weight-bold">{{ num($property->garage) }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>عدد الطوابق</td>
+                                                    <td><span class="font-weight-bold">{{ num($property->floor) }}</span></td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الواجهة</td>
+                                                    <td><span class="font-weight-bold">{{ $property->facing ?? '-' }}</span></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- المواصفات (أيقونات صح/غلط كما في الشكل) --}}
+                            <div class="tab-pane" id="tab-3">
+                                <div class="row">
+                                    <div class="col-xl-12 col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered border-top mb-0">
+                                                <tbody>
+                                                <tr><td>غرف النوم</td><td><i class="fa {{ $property->bedroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>الحمّامات</td><td><i class="fa {{ $property->bathroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>موقف سيارات</td><td><i class="fa {{ $property->garage ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>مفروش</td><td><i class="fa {{ ($property->furnished ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>واجهة</td><td><i class="fa {{ ($property->facing ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>مصعد</td><td><i class="fa {{ ($property->has_lift ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>مسبح</td><td><i class="fa {{ ($property->has_pool ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr><td>حراسة</td><td><i class="fa {{ ($property->has_security ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(!empty($amenities))
+                                    <hr>
+                                    <h6 class="mb-3">المرافق</h6>
+                                    <div class="row">
+                                        @foreach($amenities as $am)
+                                            <div class="col-md-4 mb-2"><i class="fa fa-check-circle text-success me-2"></i>{{ $am }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- معلومات إضافية --}}
+                            <div class="tab-pane" id="tab-4">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered border-top mb-0">
+                                                <tbody>
+                                                <tr><td>النوع</td><td><span class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span></td></tr>
+                                                <tr><td>الحمّامات</td><td><span class="font-weight-bold">{{ num($property->bathroom) }}</span></td></tr>
+                                                <tr><td>المساحة</td><td><span class="font-weight-bold">{{ num($property->size) }} م²</span></td></tr>
+                                                <tr><td>الواجهة</td><td><span class="font-weight-bold">{{ $property->facing ?? '-' }}</span></td></tr>
+                                                <tr><td>غرف النوم</td><td><span class="font-weight-bold">{{ num($property->bedroom) }}</span></td></tr>
+                                                <tr><td>التأثيث</td><td><span class="font-weight-bold">{{ $property->furnished ?? '-' }}</span></td></tr>
+                                                <tr><td>بلكونة</td><td><span class="font-weight-bold">{{ num($property->balcony) }}</span></td></tr>
+                                                <tr><td>مصعد</td><td><span class="font-weight-bold">{{ ($property->has_lift ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
+                                                <tr><td>مسبح</td><td><span class="font-weight-bold">{{ ($property->has_pool ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
+                                                <tr><td>حديقة</td><td><span class="font-weight-bold">{{ ($property->has_garden ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(!empty($property->map))
+                                    <hr>
+                                    <h6 class="mb-3">الموقع على الخريطة</h6>
+                                    <div class="ratio ratio-16x9 br-5" id="map2">
+                                        {!! $property->map !!}
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- الفيديو (نفس الشكل: صورة مصغّرة تفتح الرابط) --}}
+                            <div class="tab-pane" id="tab-5">
+                                <ul class="list-unstyled video-list-thumbs row">
+                                    @forelse($property->videos as $v)
+                                        @php
+                                            $raw  = $v->video ?? null;
+                                            $url  = null; $file = null;
+                                            if ($raw) {
+                                                if (\Illuminate\Support\Str::startsWith($raw, ['http://','https://'])) {
+                                                    $url = $raw;
+                                                } elseif (preg_match('/^[A-Za-z0-9_-]{11}$/', $raw)) {
+                                                    $url = 'https://www.youtube.com/watch?v='.$raw;
+                                                } else {
+                                                    $file = $raw;
+                                                }
+                                            }
+                                            $thumb = '../assets/images/products/products/h1.jpg'; // صورة شكلية كما في القالب
+                                        @endphp
+                                        <li class="mb-0">
+                                            @if($url)
+                                                <a href="{{ $url }}" target="_blank">
+                                                    <img src="{{ $thumb }}" alt="video" class="img-responsive">
+                                                    <span class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
+                                                </a>
+                                            @elseif($file)
+                                                <a href="{{ asset($file) }}" target="_blank">
+                                                    <img src="{{ $thumb }}" alt="video" class="img-responsive">
+                                                    <span class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
+                                                </a>
+                                            @else
+                                                <img src="{{ $thumb }}" alt="video" class="img-responsive">
+                                            @endif
+                                        </li>
+                                    @empty
+                                        <li class="mb-0"><p class="text-muted">لا يوجد فيديو.</p></li>
+                                    @endforelse
+                                </ul>
+                            </div>
+
+                            {{-- الوثائق — يظهر فقط عند البيع --}}
+                            @if(!$isRent && $property->documents->isNotEmpty())
+                                <div class="tab-pane" id="tab-docs">
+                                    <h5 class="mb-3">الوثائق</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th>النوع</th>
+                                                <th>الجهة</th>
+                                                <th>الرقم</th>
+                                                <th>تاريخ الإصدار</th>
+                                                <th>تحميل</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach($property->documents as $doc)
+                                                @php
+                                                    $raw = $doc->file_path ?? null;
+                                                    $href = $raw
+                                                        ? (\Illuminate\Support\Str::startsWith($raw,['http://','https://']) ? $raw : asset($raw))
+                                                        : null;
+                                                @endphp
+                                                <tr>
+                                                    <td>{{ $doc->doc_type }}</td>
+                                                    <td>{{ $doc->issuer }}</td>
+                                                    <td>{{ $doc->doc_no }}</td>
+                                                    <td>{{ optional($doc->issued_at)->format('Y-m-d') }}</td>
+                                                    <td>
+                                                        @if($href)
+                                                            <a href="{{ $href }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                <i class="fa fa-download"></i> فتح
+                                                            </a>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- شروط الإيجار — يظهر فقط عند الإيجار --}}
+                            @if($isRent )
+                                <div class="tab-pane" id="tab-rules">
+                                    <h5 class="mb-3">شروط الإيجار</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-striped mb-0">
+                                            <thead>
+                                            <tr>
+                                                <th>البند</th>
+                                                <th>القيمة</th>
+                                                <th>إلزامي</th>
+                                                <th>ملاحظات</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            @foreach($rentalRules as $r)
+                                                <tr>
+                                                    <td>{{ $r->rule_key }}</td>
+                                                    <td>{{ $r->rule_value }}</td>
+                                                    <td>{!! ($r->is_enforced ?? 0) ? '<span class="badge bg-success">نعم</span>' : '<span class="badge bg-secondary">اختياري</span>' !!}</td>
+                                                    <td>{{ $r->notes }}</td>
+                                                </tr>
+                                            @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+
+                        <div class="py-4 px-5 border border-top-0 border-bottom-0 bg-white">
+                            <div class="list-id">
+                                <div class="row">
+                                    <div class="col">
+                                        <a class="mb-0">رقم الإعلان : #{{ $property->id }}</a>
+                                    </div>
+                                    <div class="col col-auto">
+                                        المُعلن: <a class="mb-0 font-weight-bold" href="{{ route('agent', $property->agent->id) }}">{{ optional($property->agent)->name }}</a> /
+                                        {{ optional($property->created_at)->format('Y-m-d') }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-white details-tab border">
+                            <div class="icons">
+                                <a href="javascript:void(0);" class="btn btn-info icons"><i class="icon icon-share me-1"></i> مشاركة</a>
+                                <a href="javascript:void(0);" class="btn btn-primary icons"><i class="icon icon-heart me-1"></i> {{ num($property->favorites_count ?? 678) }}</a>
+                                <a href="javascript:void(0);" class="btn btn-secondary icons"><i class="icon icon-printer me-1"></i> طباعة</a>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="right-item">
-                    <h2>Amenities</h2>
-                    <div class="amenity">
-                        <ul class="amenity-ul">
-                            @php
-                            $amenity_arr = explode(',', $property->amenities);
-                            $amenity = \App\Models\Amenity::whereIn('id', $amenity_arr)->get();
-                            @endphp
-                            @foreach($amenity as $item)
-                                <li><i class="fas fa-check-square"></i> {{ $item->name }}</li>
-                            @endforeach
-                        </ul>
+                    <h3 class="mb-5 mt-4">عقارات مشابهة</h3>
+                    <div id="myCarousel5" class="owl-carousel owl-carousel-icons3">
+                        @foreach($related as $rp)
+                            <div class="item">
+                                <div class="card">
+                                    <div class="arrow-ribbon {{ (Str::lower($rp->purpose) === 'rent') ? 'bg-secondary' : 'bg-primary' }}">
+                                        {{ (Str::lower($rp->purpose) === 'rent') ? 'للإيجار' : 'للبيع' }}
+                                    </div>
+                                    <div class="item-card7-imgs">
+                                        <a href="{{ route('property_detail', $rp->slug) }}"></a>
+                                        <img src="{{ asset('uploads/'.$rp->featured_photo) }}" alt="img" class="cover-image">
+                                    </div>
+                                    <div class="item-card7-overlaytext">
+                                        <a href="{{ route('property_detail', $rp->slug) }}" class="text-white">{{ optional($rp->type)->name }}</a>
+                                        <h4 class="mb-0">{{ num($rp->price) }}</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="item-card7-desc">
+                                            <a href="{{ route('property_detail', $rp->slug) }}" class="text-dark"><h4 class="font-weight-semibold">{{ $rp->name }}</h4></a>
+                                        </div>
+                                        <div class="item-card7-text">
+                                            <ul class="icon-card mb-0">
+                                                <li><a href="javascript:void(0);" class="icons"><i class="icon icon-location-pin text-muted me-1"></i> {{ optional($rp->location)->name }}</a></li>
+                                                <li><a href="javascript:void(0);" class="icons"><i class="icon icon-event text-muted me-1"></i> {{ optional($rp->created_at)->diffForHumans() }}</a></li>
+                                                <li class="mb-0"><a href="javascript:void(0);" class="icons"><i class="icon icon-user text-muted me-1"></i> {{ optional($rp->agent)->name }}</a></li>
+                                            </ul>
+                                            <p class="mb-0"> المساحة {{ num($rp->size) }} م²</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
+                    <!--/Related Posts-->
                 </div>
 
-                @if($property->map != '')
-                <div class="right-item">
-                    <h2>Location Map</h2>
-                    <div class="location-map">
-                        {!! $property->map !!}
+                <!-- يمين: المُعلن + عناصر إضافية -->
+                <div class="col-xl-4 col-lg-4 col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">المُعلن</h3>
+                        </div>
+                        <div class="card-body item-user">
+                            <div class="profile-pic mb-0">
+                                <img src="{{ asset('uploads/'.(optional($property->agent)->photo)) }}" class="brround avatar-xxl" alt="user">
+                                <div class="">
+                                    <a href="{{ route('agent', $property->agent->id) }}" class="text-dark">
+                                        <h4 class="mt-3 mb-1 font-weight-semibold">{{ optional($property->agent)->name }}</h4>
+                                    </a>
+                                    <p class="mb-0">وكيل عقاري</p>
+                                    <span class="text-muted">الهاتف: {{ optional($property->agent)->phone }}</span>
+                                    <h6 class="mt-2 mb-0">
+                                        <a href="{{ route('agent', $property->agent->id) }}" class="btn btn-primary btn-sm">كل إعلاناته</a>
+                                    </h6>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body item-user">
+                            <h4 class="mb-4">معلومات التواصل</h4>
+                            <div>
+                                <h6><span class="font-weight-semibold"><i class="fa fa-map-marker me-2 mb-2"></i></span><span class="text-body">{{ $property->address }}</span></h6>
+                                <h6><span class="font-weight-semibold"><i class="fa fa-envelope me-2 mb-2"></i></span><span class="text-body">{{ optional($property->agent)->email }}</span></h6>
+                                <h6><span class="font-weight-semibold"><i class="fa fa-phone me-2 mb-2"></i></span><span class="text-body">{{ optional($property->agent)->phone }}</span></h6>
+                            </div>
+                            <div class="item-user-icons mt-4">
+                                <a href="javascript:void(0);" class="facebook-bg mt-0"><i class="fa fa-whatsapp"></i></a>
+                                <a href="javascript:void(0);" class="twitter-bg"><i class="fa fa-twitter"></i></a>
+                                <a href="javascript:void(0);" class="google-bg"><i class="fa fa-telegram"></i></a>
+                                <a href="javascript:void(0);" class="dribbble-bg"><i class="fa fa-facebook"></i></a>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="text-start">
+                                <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contact"><i class="fa fa-user"></i> إرسال رسالة</a>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                @endif
 
-                <div class="right-item">
-                    <h2>Enquery Form</h2>
-                    <div class="enquery-form">
-                        <form action="{{ route('property_send_message',$property->id) }}" method="post">
-                            @csrf
-                            <div class="mb-3">
-                                <input name="name" type="text" class="form-control" placeholder="Full Name">
+                    @if($agentLatest->count())
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">آخر إعلانات المُعلن</h3>
                             </div>
-                            <div class="mb-3">
-                                <input name="email" type="email" class="form-control" placeholder="Email Address">
+                            <div class="card-body pb-3">
+                                <div class="rated-products">
+                                    <ul class="vertical-scroll">
+                                        @foreach($agentLatest as $ap)
+                                            <li class="item">
+                                                <div class="media p-5 mt-0">
+                                                    <a href="{{ route('property_detail', $ap->slug) }}" class="me-4">
+                                                        <img class="" src="{{ asset('uploads/'.$ap->featured_photo) }}" alt="img" style="width:64px;height:48px;object-fit:cover">
+                                                    </a>
+                                                    <div class="media-body">
+                                                        <a href="{{ route('property_detail', $ap->slug) }}"><h4 class="mt-2 mb-1">{{ \Illuminate\Support\Str::limit($ap->name, 40) }}</h4></a>
+                                                        <div class="h5 mb-0 font-weight-semibold mt-1">{{ num($ap->price) }} {{ $ap->currency ?? '$' }}</div>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <input name="phone" type="text" class="form-control" placeholder="Phone Number">
+                        </div>
+                    @endif
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">الموقع على الخريطة</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="map-header">
+                                <div class="map-header-layer" id="map2">
+                                    {!! $property->map !!}
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <textarea name="message" class="form-control h-150" rows="3" placeholder="Message"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <button type="submit" class="btn btn-primary">
-                                    Submit
-                                </button>
-                            </div>
-                        </form>
+                        </div>
                     </div>
+
+                    @if($latestProperties->count())
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">أحدث العقارات</h3>
+                            </div>
+                            <div class="card-body pb-3">
+                                <ul class="vertical-scroll">
+                                    @foreach($latestProperties as $lp)
+                                        <li class="news-item">
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <a href="{{ route('property_detail', $lp->slug) }}">
+                                                            <img src="{{ asset('uploads/'.$lp->featured_photo) }}" alt="img" class="w-8 border" style="width:48px;height:48px;object-fit:cover"/>
+                                                        </a>
+                                                    </td>
+                                                    <td class="ps-4">
+                                                        <h5 class="mb-1 "><a class="btn-link" href="{{ route('property_detail', $lp->slug) }}">{{ \Illuminate\Support\Str::limit($lp->name, 28) }}</a></h5>
+                                                        <span class="float-end font-weight-bold">{{ num($lp->price) }}</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-
-
+                <!--/Right Side Content-->
             </div>
         </div>
-    </div>
-</div>
+    </section>
 @endsection

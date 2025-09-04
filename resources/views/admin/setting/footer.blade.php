@@ -1,61 +1,76 @@
 @extends('admin.layouts.master')
 
 @section('main_content')
-@include('admin.layouts.nav')
-@include('admin.layouts.sidebar')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header d-flex justify-content-between">
-            <h1>Edit Footer</h1>
-        </div>
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <form action="{{ route('admin_setting_footer_update') }}" method="post">
-                                @csrf
-                                <div class="form-group mb-3">
-                                    <label>Address</label>
-                                    <input type="text" class="form-control" name="footer_address" value="{{ $setting->footer_address }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Email</label>
-                                    <input type="text" class="form-control" name="footer_email" value="{{ $setting->footer_email }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Phone</label>
-                                    <input type="text" class="form-control" name="footer_phone" value="{{ $setting->footer_phone }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Facebook</label>
-                                    <input type="text" class="form-control" name="footer_facebook" value="{{ $setting->footer_facebook }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Twitter</label>
-                                    <input type="text" class="form-control" name="footer_twitter" value="{{ $setting->footer_twitter }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>LinkedIn</label>
-                                    <input type="text" class="form-control" name="footer_linkedin" value="{{ $setting->footer_linkedin }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Instagram</label>
-                                    <input type="text" class="form-control" name="footer_instagram" value="{{ $setting->footer_instagram }}">
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Copyright *</label>
-                                    <input type="text" class="form-control" name="footer_copyright" value="{{ $setting->footer_copyright }}">
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-primary">Update</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    @include('admin.layouts.nav')
+    @include('admin.layouts.sidebar')
+    <!-- start page content wrapper-->
+    <div class="page-content-wrapper">
+
+        <!-- start page content-->
+        <div class="page-content">
+
+            <!--start breadcrumb-->
+            <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+                <div class="breadcrumb-title pe-3">إعدادات الموقع</div>
+                <div class="ps-3">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 p-0 align-items-center">
+                            <li class="breadcrumb-item"><a href="javascript:;"><ion-icon name="home-outline"></ion-icon></a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">تذييل الموقع</li>
+                        </ol>
+                    </nav>
                 </div>
             </div>
+            <!--end breadcrumb-->
+            <div class="card">
+                <div class="card-header bg-primary text-light">
+                    <h6 class="mb-0">تعديل ذيل الصفحة</h6>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label class="form-label">العنوان</label>
+                            <input type="search" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">البريد الإلكتروني</label>
+                            <input type="email" class="form-control" placeholder="example@gmail.com">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">رقم الهاتف</label>
+                            <input type="search" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">فيسبوك</label>
+                            <input type="url" class="form-control" placeholder="https://facebook.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">إكس</label>
+                            <input type="url" class="form-control" placeholder="https://x.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">لينكد إن</label>
+                            <input type="url" class="form-control" placeholder="https://linkedin.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">إنستغرام</label>
+                            <input type="url" class="form-control" placeholder="https://instagram.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">حقوق الطبع والنشر*</label>
+                            <input type="search" class="form-control">
+                        </div>
+                        <div class="text-start mt-3">
+                            <button type="button" class="btn btn-primary px-4">حفظ التغييرات</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
         </div>
-    </section>
-</div>
+        <!-- end page content-->
+    </div>
+    <!--end page content wrapper-->
 @endsection

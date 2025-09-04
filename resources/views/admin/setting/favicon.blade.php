@@ -1,39 +1,60 @@
 @extends('admin.layouts.master')
 
 @section('main_content')
-@include('admin.layouts.nav')
-@include('admin.layouts.sidebar')
-<div class="main-content">
-    <section class="section">
-        <div class="section-header d-flex justify-content-between">
-            <h1>Edit Favicon</h1>
-        </div>
-        <div class="section-body">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-body">
-                            <form action="{{ route('admin_setting_favicon_update') }}" method="post" enctype="multipart/form-data">
-                                @csrf
-                                <div class="form-group mb-3">
-                                    <label>Existing Favicon</label>
-                                    <div>
-                                        <img src="{{ asset('uploads/'.$setting->favicon) }}" alt="" class="w_100">
-                                    </div>
-                                </div>
-                                <div class="form-group mb-3">
-                                    <label>Change Favicon</label>
-                                    <div><input type="file" name="favicon"></div>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit" class="btn btn-primary">Update</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+    @include('admin.layouts.nav')
+    @include('admin.layouts.sidebar')
+    <!-- start page content wrapper-->
+    <div class="page-content-wrapper">
+
+        <!-- start page content-->
+        <div class="page-content">
+
+            <!--start breadcrumb-->
+            <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
+                <div class="breadcrumb-title pe-3">إعدادات الموقع</div>
+                <div class="ps-3">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 p-0 align-items-center">
+                            <li class="breadcrumb-item"><a href="javascript:;"><ion-icon name="home-outline"></ion-icon></a>
+                            </li>
+                            <li class="breadcrumb-item active" aria-current="page">ايقونة الموقع</li>
+                        </ol>
+                    </nav>
                 </div>
             </div>
+            <!--end breadcrumb-->
+
+            <div class="card">
+                <div class="card-header bg-primary text-light">
+                    <h6 class="mb-0">تعديل ايقونة الموقع</h6>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-4 d-flex flex-column gap-3 align-items-center justify-content-center">
+                            <label class="badge rounded-pill bg-primary-subtle text-secondary px-4 py-2 fs-6">الايقونة الحالية</label>
+                            <figure class="figure m-0 text-end rounded-circle">
+                                <img src="assets/images/logo-icon-3.png"
+                                     class="figure-img img-fluid img-thumbnail"
+                                     alt="الايقونة الحالية">
+                            </figure>
+                        </div>
+                        <div class="mb-4 d-flex flex-column gap-3 align-items-center justify-content-center">
+                            <input type="file" id="photo" name="photo" class="d-none" accept="image/*">
+
+                            <label for="photo" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+                                <ion-icon name="image-sharp"></ion-icon>
+                                تغيير الصورة
+                            </label>
+                        </div>
+                        <div class="text-start mt-3">
+                            <button type="button" class="btn btn-primary px-4">حفظ التغييرات</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!--end row-->
         </div>
-    </section>
-</div>
+        <!-- end page content-->
+    </div>
+    <!--end page content wrapper-->
 @endsection

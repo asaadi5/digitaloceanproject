@@ -1,38 +1,48 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Customer Forget Password</h2>
-            </div>
-        </div>
-    </div>
-</div>
+    <!--Sliders Section-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="{{ asset('uploads/' . $global_setting->banner) }}">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">استعادة كلمة المرور</h1>
 
-<div class="page-content">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-xl-4 col-lg-5 col-md-6 col-sm-12">
-                <div class="login-form">
-                    <form action="{{ route('forget_password_submit') }}" method="post">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="" class="form-label">Email Address</label>
-                            <input type="text" name="email" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <button type="submit" class="btn btn-primary bg-website">
-                                Submit
-                            </button>
-                            <a href="{{ route('login') }}" class="primary-color">Back to Login Page</a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--/Sliders Section-->
+
+
+    <!--Login-Section-->
+    <section class="sptb">
+        <div class="container customerpage">
+            <div class="row">
+                <div class="single-page" >
+                    <div class="col-lg-5 col-xl-4 col-md-6 d-block mx-auto">
+                        <div class="wrapper wrapper2">
+                            <form id="login" class="card-body" tabindex="500" action="{{ route('forget_password_submit') }}" method="post">
+                                @csrf
+                                <h3>نسيت كلمة المرور</h3>
+                                <div class="mail">
+                                    <input type="email" name="email">
+                                    <label>البريد الإلكتروني</label>
+                                </div>
+
+                                <div class="submit">
+                                    <button type="submit" class="btn btn-primary btn-block">إرسال</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--/Login-Section-->
+
 @endsection

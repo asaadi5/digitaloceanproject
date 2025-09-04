@@ -2,14 +2,13 @@
 
 return [
 
-    // فعّل CORS على كل مسارات الـ API
+    // فعّل CORS على مسارات API فقط
     'paths' => ['api/*'],
 
     // اسمح بكل الطرق (GET/POST/PUT/DELETE/OPTIONS…)
     'allowed_methods' => ['*'],
 
-    // الأصول (الدومينات) المسموح لها – نقرأها من .env
-    // للتجربة استخدم *، وللإنتاج حدّد الدومينات
+    // اقرأ الدومينات المسموح بها من .env (استخدم * للتجارب فقط)
     'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', '*')))),
 
     'allowed_origins_patterns' => [],
@@ -23,6 +22,6 @@ return [
     // مدة كاش للـ preflight بالثواني
     'max_age' => 3600,
 
-    // طالما سنستخدم Bearer Token حالياً، خَلِّيه false (بدون كوكيز)
+    // Bearer tokens لا تحتاج Cookies
     'supports_credentials' => false,
 ];
