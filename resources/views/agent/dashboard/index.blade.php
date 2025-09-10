@@ -1,89 +1,129 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Agent Dashboard</h2>
+    <!--Breadcrumb-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="../assets/images/banners/banner2.jpg">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">لوحة التحكم الخاصة بي</h1>
+                        <ol class="breadcrumb text-center">
+                            <li class="breadcrumb-item"><a href="javascript:void(0);">الرئيسية</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">لوحة التحكم الخاصة بي</li>
+                        </ol>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--Breadcrumb-->
 
-<div class="page-content user-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
+    <!--Dashboard-->
+    <section class="sptb">
+        <div class="container-fluid px-0">
+            <div class="row  g-0">
+
+                <!-- الشريط الجانبي  -->
+                <div class="col-xl-2 col-lg-3 col-md-12">
                     @include('agent.sidebar.index')
                 </div>
-            </div>
-            <div class="col-lg-9 col-md-12">
-                <h3>Hello, {{ Auth::guard('agent')->user()->name }}</h3>
-                <p>See all the statistics at a glance:</p>
+                <!-- /الشريط الجانبي  -->
 
-                <div class="row box-items">
-                    <div class="col-md-4">
-                        <div class="box1">
-                            <h4>{{ $total_active_properties }}</h4>
-                            <p>Active Properties</p>
+                <!-- المحتوى  -->
+                <div class="col-xl-10 col-lg-9 col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">لمحة عن جميع الإحصائيات</h3>
                         </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="box2">
-                            <h4>{{ $total_pending_properties }}</h4>
-                            <p>Pending Properties</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="box3">
-                            <h4>{{ $total_featured_properties }}</h4>
-                            <p>Featured Properties</p>
-                        </div>
-                    </div>
-                </div>
+                        <div class="card-body text-dark">
+                            <div class="statistics-info">
+                                <div class="row text-center">
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="counter-status">
+                                            <div class="counter-icon bg-transparent text-danger">
+                                                <i class="icon icon-home"></i>
+                                            </div>
+                                            <h5>العقارات النشطة</h5>
+                                            <h2 class="counter">{{ $total_active_properties }}</h2>
+                                        </div>
+                                    </div>
 
-                <h3 class="mt-5">Recent Properties</h3>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <tbody>
-                            <tr>
-                                <th>SL</th>
-                                <th>Name</th>
-                                <th>Location</th>
-                                <th>Type</th>
-                                <th>Purpose</th>
-                                <th>Price</th>
-                                <th>Is Featured?</th>
-                                <th>Created Date</th>
-                            </tr>
-                            @foreach($recent_properties as $item)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $item->name }}</td>
-                                <td>{{ $item->location->name }}</td>
-                                <td>{{ $item->type->name }}</td>
-                                <td>{{ $item->purpose }}</td>
-                                <td>${{ $item->price }}</td>
-                                <td>
-                                    @if($item->is_featured == 'Yes')
-                                        <span class="badge bg-success">Yes</span>
-                                    @else
-                                        <span class="badge bg-danger">No</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    {{ $item->created_at->format('d M Y') }}
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="counter-status">
+                                            <div class="counter-icon bg-transparent text-warning">
+                                                <i class="icon icon-clock"></i>
+                                            </div>
+                                            <h5>العقارات المُعلّقة</h5>
+                                            <h2 class="counter">{{ $total_pending_properties }}</h2>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="counter-statuss">
+                                            <div class="counter-icon bg-transparent text-primary">
+                                                <i class="icon icon-star"></i>
+                                            </div>
+                                            <h5>العقارت المُميزة</h5>
+                                            <h2 class="counter">{{ $total_featured_properties }}</h2>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="table-responsive">
+                            <div class="card-header">
+                                <h3 class="card-title">العقارات الأخيرة</h3>
+                            </div>
+                            <table class="table table-bordered table-hover text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الاسم</th>
+                                    <th>الموقع</th>
+                                    <th>النوع</th>
+                                    <th>الغرض</th>
+                                    <th>السعر</th>
+                                    <th>هل هو مميز؟</th>
+                                    <th>تاريخ الإنشاء</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @forelse($recent_properties as $index => $item)
+                                    <tr>
+                                        <td>{{ $index + 1 }}</td>
+                                        <td>{{ $item->name }}</td>
+                                        <td>{{ $item->location->name }}</td>
+                                        <td>{{ $item->type->name }}</td>
+                                        <td>{{ $item->purpose }}</td>
+                                        <td>${{ $item->price }}</td>
+                                        <td>
+                                            @if($item->is_featured == 'Yes')
+                                                <span class="badge bg-success rounded-pill">Yes</span>
+                                            @else
+                                                <span class="badge bg-danger rounded-pill">No</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $item->created_at->format('d M Y') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center">لا توجد بيانات لعرضها حالياً</td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
+                <!-- /المحتوى -->
+                <!--/Dashboard-->
             </div>
         </div>
-    </div>
-</div>
+    </section>
 @endsection

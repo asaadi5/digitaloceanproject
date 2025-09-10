@@ -1,83 +1,116 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Agent Properties</h2>
+    <!--Breadcrumb-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="../assets/images/banners/banner2.jpg">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">لوحة التحكم الخاصة بي</h1>
+                        <ol class="breadcrumb text-center">
+                            <li class="breadcrumb-item"><a href="javascript:void(0);">الرئيسية</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">كل العقارات</li>
+                        </ol>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-<div class="page-content user-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
+    </section>
+    <!--Breadcrumb-->
+
+    <!--All-properties-->
+    <section class="sptb">
+        <div class="container-fluid px-0">
+            <div class="row  g-0">
+
+                <!-- الشريط الجانبي  -->
+                <div class="col-xl-2 col-lg-3 col-md-12">
                     @include('agent.sidebar.index')
                 </div>
-            </div>
-            <div class="col-lg-9 col-md-12">
-                <div class="table-responsive">
-                    <table class="table table-bordered" id="datatable">
-                        <thead>
-                            <tr>
-                                <th>SL</th>
-                                <th>Featured Photo</th>
-                                <th>Name</th>
-                                <th>Agent</th>
-                                <th>Location</th>
-                                <th>Type</th>
-                                <th>Purpose</th>
-                                <th>Is Featured?</th>
-                                <th>Status</th>
-                                <th class="w-150">Options</th>
-                                <th class="w-100">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($properties as $property)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>
-                                    <img src="{{ asset('uploads/' . $property->featured_photo) }}" alt="" class="w-100">
-                                </td>
-                                <td>{{ $property->name }}</td>
-                                <td>{{ $property->agent->name }}</td>
-                                <td>{{ $property->location->name }}</td>
-                                <td>{{ $property->type->name }}</td>
-                                <td>{{ $property->purpose }}</td>
-                                <td>
-                                    @if($property->is_featured == 'Yes')
-                                        <span class="badge bg-success">Yes</span>
-                                    @else
-                                        <span class="badge bg-danger">No</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($property->status == 'Active')
-                                        <span class="badge bg-success">Active</span>
-                                    @else
-                                        <span class="badge bg-danger">Pending</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('agent_property_photo_gallery',$property->id) }}" class="btn btn-primary btn-sm btn-sm-custom w-100-p mb_5">Photo Gallery</a>
-                                    <a href="{{ route('agent_property_video_gallery',$property->id) }}" class="btn btn-primary btn-sm btn-sm-custom w-100-p mb_5">Video Gallery</a>
-                                </td>
-                                <td>
-                                    <a href="{{ route('agent_property_edit', $property->id) }}" class="btn btn-warning btn-sm text-white"><i class="fas fa-edit"></i></a>
-                                    <a href="{{ route('agent_property_delete', $property->id) }}" class="btn btn-danger btn-sm" onClick="return confirm('Are you sure?');"><i class="fas fa-trash-alt"></i></a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <!-- /الشريط الجانبي  -->
+
+                <!-- المحتوى  -->
+                <div class="col-xl-10 col-lg-9 col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header">
+                            <h3 class="card-title">عقاراتي</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="ads-tabs">
+                                @php
+                                    $allCount      = $properties->count();
+                                    $activeCount   = $properties->where('status','Active')->count();
+                                    $featuredCount = $properties->filter(fn($p)=>strtolower($p->is_featured)==='yes')->count();
+                                    $soldCount     = $properties->where('status','Sold')->count(); // إن وُجدت
+                                    $saleCount     = $properties->filter(fn($p)=>strtolower($p->purpose)==='buy')->count();
+                                    $rentCount     = $properties->filter(fn($p)=>strtolower($p->purpose)==='rent')->count();
+                                @endphp
+
+                                <div class="tabs-menus">
+                                    <!-- Tabs -->
+                                    <ul class="nav panel-tabs">
+                                        <li class=""><a href="#tab-all" class="active" data-bs-toggle="tab">كل العقارات ({{ $allCount }})</a></li>
+                                        <li><a href="#tab-active" data-bs-toggle="tab">نشِطة ({{ $activeCount }})</a></li>
+                                        <li><a href="#tab-featured" data-bs-toggle="tab">مميّزة ({{ $featuredCount }})</a></li>
+                                        <li><a href="#tab-sold" data-bs-toggle="tab">مباعة ({{ $soldCount }})</a></li>
+                                        <li><a href="#tab-sale" data-bs-toggle="tab">للبيع ({{ $saleCount }})</a></li>
+                                        <li><a href="#tab-rent" data-bs-toggle="tab">للإيجار ({{ $rentCount }})</a></li>
+                                    </ul>
+                                </div>
+
+                                <div class="tab-content">
+
+                                    <!-- كل العقارات -->
+                                    <div class="tab-pane active table-responsive userprof-tab" id="tab-all">
+                                        @include('agent.property.partials.table', ['rows' => $properties])
+                                    </div>
+
+                                    <!-- نشِطة -->
+                                    <div class="tab-pane table-responsive userprof-tab" id="tab-active">
+                                        @include('agent.property.partials.table', [
+                                            'rows' => $properties->where('status','Active')
+                                        ])
+                                    </div>
+
+                                    <!-- مميّزة -->
+                                    <div class="tab-pane table-responsive userprof-tab" id="tab-featured">
+                                        @include('agent.property.partials.table', [
+                                            'rows' => $properties->filter(fn($p)=>strtolower($p->is_featured)==='yes')
+                                        ])
+                                    </div>
+
+                                    <!-- مباعة -->
+                                    <div class="tab-pane table-responsive userprof-tab" id="tab-sold">
+                                        @include('agent.property.partials.table', [
+                                            'rows' => $properties->where('status','Sold')
+                                        ])
+                                    </div>
+
+                                    <!-- للبيع -->
+                                    <div class="tab-pane table-responsive userprof-tab" id="tab-sale">
+                                        @include('agent.property.partials.table', [
+                                            'rows' => $properties->filter(fn($p)=>strtolower($p->purpose)==='buy')
+                                        ])
+                                    </div>
+
+                                    <!-- للإيجار -->
+                                    <div class="tab-pane table-responsive userprof-tab" id="tab-rent">
+                                        @include('agent.property.partials.table', [
+                                            'rows' => $properties->filter(fn($p)=>strtolower($p->purpose)==='rent')
+                                        ])
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                <!-- /المحتوى -->
+
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--/All-properties-->
 @endsection

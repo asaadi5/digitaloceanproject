@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth; // NEW
-use App\Models\PropertyDocument;
+use Illuminate\Support\Facades\Auth;
+use App\Models\{
+    Agent, Location, Type, Amenity, Wishlist,
+    PropertyPhoto, PropertyVideo, PropertyDocument
+};
 
 class Property extends Model
 {
@@ -15,121 +18,122 @@ class Property extends Model
 
     /**
      * الحقول القابلة للتعبئة
+     * (حرصت أضيف كل الأعمدة المستخدمة في الكونترولرات + اللي ظهرت في صورة DB)
      */
     protected $fillable = [
         'agent_id',
-        'location_id',
-        'area',
-        'type_id',
-
         'name',
         'slug',
-        'description',
         'price',
-        'featured_photo',
-
-        'purpose',          // بيع / إيجار أو ما يقابله لديك
+        'description',
+        'location_id',
+        'type_id',
+        'purpose',
+        'area',
+        'address',
         'bedroom',
         'bathroom',
         'size',
         'floor',
         'garage',
         'balcony',
-        'address',
         'built_year',
+        'is_featured',
+        'featured_photo',
         'map',
 
-        'amenities',        // مخزنة كسلسلة مفصولة بفواصل
+        // حالة العرض والمتابعة
+        'status',
+        'total_views',
 
-        'is_featured',      // yes | no (lowercase)
-        'status',           // active | pending | rejected (lowercase)
+        // في بعض الأماكن تُخزَّن كقائمة IDs مفصولة بفواصل
+        'amenities',
 
-        // حقول التحقق/القانونية (اختياري حسب سكيمتك)
+        // حقول السجل/الترخيص/الملكية/التصنيف
         'registry_number',
         'registry_zone',
-        'ownership_type',       // freehold/leasehold... الخ
+        'ownership_type',
         'zoning_class',
         'building_permit_no',
-        'build_code_compliance',// tinyint/bool
-        'earthquake_resistance',// tinyint/bool
+
+        // مطابقة الكود الزلزالي والملاحظات القانونية
+        'build_code_compliance',
+        'earthquake_resistance',
         'legal_notes',
-        'verification_status',  // pending|verified|rejected (lowercase)
-        'moderation_notes',
     ];
 
     /**
-     * التحويلات لأنواع البيانات
+     * التحويلات
      */
     protected $casts = [
-        'price'                   => 'float',
-        'bedroom'                 => 'integer',
-        'bathroom'                => 'integer',
-        'size'                    => 'integer',
-        'floor'                   => 'integer',
-        'garage'                  => 'integer',
-        'balcony'                 => 'integer',
-        'build_code_compliance'   => 'boolean',
-        'earthquake_resistance'   => 'boolean',
-        'created_at'              => 'datetime',
-        'updated_at'              => 'datetime',
+        'price'                 => 'float',
+        'bedroom'               => 'integer',
+        'bathroom'              => 'integer',
+        'size'                  => 'integer',
+        'floor'                 => 'integer',
+        'garage'                => 'integer',
+        'balcony'               => 'integer',
+        'built_year'            => 'integer',
+        'total_views'           => 'integer',
+        'build_code_compliance' => 'boolean',
+        'earthquake_resistance' => 'boolean',
+        'created_at'            => 'datetime',
+        'updated_at'            => 'datetime',
     ];
 
-    /*****************
+    /**
+     * خصائص محسوبة تظهر تلقائياً مع الـ JSON
+     */
+    protected $appends = [
+        'featured_photo_url',
+        'price_formatted',
+        'is_featured_bool',
+        'amenities_list',
+    ];
+
+    /***************************************************************************
      * العلاقات
-     *****************/
+     ***************************************************************************/
 
-    public function agent()
+    public function agent()     { return $this->belongsTo(Agent::class, 'agent_id'); }
+    public function location()  { return $this->belongsTo(Location::class); }
+    public function type()      { return $this->belongsTo(Type::class); }
+
+    public function wishlists() { return $this->hasMany(Wishlist::class); }
+
+    public function photos()    { return $this->hasMany(PropertyPhoto::class); }
+    public function videos()    { return $this->hasMany(PropertyVideo::class); }
+    public function documents() { return $this->hasMany(PropertyDocument::class, 'property_id'); }
+
+    // Many-to-Many مع الـ amenities عبر جدول pivot amenity_property
+    public function amenitiesRelation()
     {
-        return $this->belongsTo(Agent::class, 'agent_id');
+        return $this->belongsToMany(Amenity::class, 'amenity_property', 'property_id', 'amenity_id')
+            ->withTimestamps();
     }
 
-    public function type()
-    {
-        return $this->belongsTo(Type::class, 'type_id');
-    }
+    /***************************************************************************
+     * Scopes مفيدة لإعادة الاستخدام في الكونترولرات
+     ***************************************************************************/
 
-    public function location()
-    {
-        return $this->belongsTo(Location::class, 'location_id');
-    }
-
-    public function photos()
-    {
-        return $this->hasMany(PropertyPhoto::class, 'property_id');
-    }
-
-    public function documents(): \Illuminate\Database\Eloquent\Relations\HasMany
-    {
-        return $this->hasMany(PropertyDocument::class, 'property_id');
-    }
-
-    public function videos()
-    {
-        return $this->hasMany(PropertyVideo::class, 'property_id');
-    }
-
-    public function wishlists()
-    {
-        return $this->hasMany(Wishlist::class);
-    }
-
-    /*****************
-     * Scopes مفيدة
-     *****************/
-
-    // حالة العقار Active (lowercase متوافق مع الداتابيس)
+    // حالة العقار Active (lowercase كما في قاعدة البيانات)
     public function scopeActive($q)
     {
         return $q->where('status', 'active');
     }
+    public function scopePending($q)
+    {
+        return $q->where('status', 'pending');
+    }
 
-    // عقارات مميّزة
-    public function scopeFeatured($q) // NEW
+
+    // عقارات مميّزة (yes/no lowercase)
+    public function scopeFeatured($q)
     {
         return $q->where('is_featured', 'yes');
     }
 
-    // عقارات لوكيل يملك باقة مفعلة وغير منتهية
+    // عقارات لوكيل لديه باقة مفعلة وغير منتهية
     public function scopeAgentWithActiveOrder($q)
     {
         return $q->whereHas('agent', function ($agentQ) {
@@ -141,35 +145,35 @@ class Property extends Model
         });
     }
 
-    // نفس شروط "أحدث العقارات" مجموعة في سكوب واحد لإعادة الاستخدام
-    public function scopePublicVisible($q) // NEW
+    // نفس شروط الظهور العام على الويب
+    public function scopePublicVisible($q)
     {
         return $q->active()->agentWithActiveOrder();
     }
 
-    // عدّاد "مفضّل" للمستخدم المحدد (أو المستخدم الحالي إذا لم يتم تمرير ID)
-    public function scopeWithWishlistedCountFor($q, $userId = null) // NEW
+    // عدّاد "مفضّل" للمستخدم المحدد (أو الحالي)
+    public function scopeWithWishlistedCountFor($q, $userId = null)
     {
         $uid = $userId ?? Auth::id();
         return $q->withCount(['wishlists as wishlisted' => function ($qq) use ($uid) {
             if ($uid) {
                 $qq->where('user_id', $uid);
             } else {
-                // لو ما في مستخدم مسجّل، خلّي العدّاد صفر دائماً
+                // بدون مستخدم مسجّل: ارجِع 0 دائماً
                 $qq->whereRaw('1 = 0');
             }
         }]);
     }
 
     // تحميل العلاقات الشائعة
-    public function scopeWithBasicIncludes($q) // NEW
+    public function scopeWithBasicIncludes($q)
     {
         return $q->with(['location','type','agent']);
     }
 
-    /*****************
+    /***************************************************************************
      * Mutators / Accessors
-     *****************/
+     ***************************************************************************/
 
     // خزّن الحالة دائمًا lowercase
     public function setStatusAttribute($value)
@@ -187,29 +191,46 @@ class Property extends Model
         }
     }
 
-    // تطبيع بسيط للغرض (يقبل العربية/الإنجليزية) — اختياري
-    public function setPurposeAttribute($value) // NEW (اختياري)
+    // تطبيع الغرض للإنجليزية الموحّدة (sale|rent|wanted)
+    public function setPurposeAttribute($value)
     {
         $v = trim(mb_strtolower((string) $value));
-        // حوّل مرادفات إلى قيم موحّدة
-        if (in_array($v, ['rent','إيجار','ايجار'])) $v = 'إيجار';
-        if (in_array($v, ['sale','بيع'])) $v = 'بيع';
+        if (in_array($v, ['rent','إيجار','ايجار'])) $v = 'rent';
+        elseif (in_array($v, ['sale','بيع','buy'])) $v = 'sale';
+        elseif (in_array($v, ['wanted','مطلوب']))    $v = 'wanted';
         $this->attributes['purpose'] = $v;
     }
 
-    // Accessor مساعد: يرجّع لائحة الـ amenities كـ array بدون ما يغيّر التخزين الأصلي
-    public function getAmenitiesListAttribute()
+    // URL للصورة المميّزة من مجلد uploads
+    public function getFeaturedPhotoUrlAttribute(): ?string
     {
-        $raw = $this->attributes['amenities'] ?? '';
-        if ($raw === '' || $raw === null) {
-            return [];
-        }
-        return array_values(array_filter(array_map('trim', explode(',', $raw))));
+        return $this->featured_photo ? url('uploads/'.$this->featured_photo) : null;
     }
 
-    // تنسيق سعر جاهز للعرض
-    public function getPriceFormattedAttribute() // NEW
+    // تنسيق السعر
+    public function getPriceFormattedAttribute(): string
     {
         return number_format((float)($this->attributes['price'] ?? 0), 0, '.', ',');
     }
+
+    // تحويل is_featured إلى Boolean للعرض
+    public function getIsFeaturedBoolAttribute(): bool
+    {
+        return strtolower((string)($this->attributes['is_featured'] ?? 'no')) === 'yes';
+    }
+
+    // إرجاع قائمة amenities المخزنة كنص CSV (إن وجدت)
+    public function getAmenitiesListAttribute(): array
+    {
+        $raw = $this->attributes['amenities'] ?? '';
+        if ($raw === '' || $raw === null) return [];
+        return array_values(array_filter(array_map('trim', explode(',', $raw))));
+    }
+
+    /***************************************************************************
+     * ملاحظات مهمة
+     * - لاستعمال الـ pivot الحقيقي للميزات، استخدم العلاقة amenitiesRelation().
+     * - الكونترولرات الحالية تضيف أحياناً IDs كـ CSV في عمود properties. وجود
+     *   amenitiesRelation يسمح لك لاحقاً تعمل sync() للـ pivot بدون كسر الخلفية.
+     ***************************************************************************/
 }

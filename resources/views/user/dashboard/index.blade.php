@@ -1,46 +1,47 @@
-@extends('front.layouts.master')
+@extends('user.profile.shell')
 
-@section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Customer Dashboard</h2>
-            </div>
+@section('profile_tab_content')
+    @php($u = $user ?? Auth::user())
+    <div class="profile-log-switch">
+        <div class="media-heading">
+            <h3 class="card-title mb-3 font-weight-bold">البيانات الشخصية</h3>
+        </div>
+
+        <ul class="usertab-list mb-0">
+            <li>
+                <span class="font-weight-semibold">الاسم الكامل :</span>
+                {{ $u->name ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">اسم المستخدم :</span>
+                {{ $u->username ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">البريد الإلكتروني :</span>
+                {{ $u->email ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">رقم الهاتف :</span>
+                {{ $u->phone ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">المدينة :</span>
+                {{ $u->city ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">العنوان :</span>
+                {{ $u->address ?? '—' }}
+            </li>
+            <li>
+                <span class="font-weight-semibold">مستخدم منذ :</span>
+                {{ optional($u->created_at)->translatedFormat('d F Y') }}
+            </li>
+        </ul>
+
+        <div class="mt-4">
+            <a href="{{ route('profile', ['edit' => 1]) }}" class="btn btn-primary btn-sm">تعديل الملف الشخصي</a>
+            <a href="{{ route('wishlist') }}" class="btn btn-light btn-sm">العقارات المفضلة</a>
+            <a href="{{ route('message') }}" class="btn btn-light btn-sm">الرسائل</a>
         </div>
     </div>
-</div>
-
-<div class="page-content user-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
-                    @include('user.sidebar.index')
-                </div>
-            </div>
-            <div class="col-lg-9 col-md-12">
-                <h3>Hello, {{ Auth::guard('web')->user()->name }}</h3>
-                <p>See all the statistics at a glance:</p>
-
-                <div class="row box-items">
-                    <div class="col-md-4">
-                        <div class="box1">
-                            <h4>{{ $total_messages }}</h4>
-                            <p>Total Messages</p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="box2">
-                            <h4>{{ $total_wishlist_items }}</h4>
-                            <p>Total Wishlist Items</p>
-                        </div>
-                    </div>
-                </div>
-                
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

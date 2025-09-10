@@ -57,7 +57,7 @@ function TimePicker( picker, settings ) {
         enable: 'activate'
     }
 
-    // The component's item object.
+    // The components's item object.
     clock.item = {}
 
     clock.item.clear = null
@@ -958,7 +958,7 @@ TimePicker.prototype.nodes = function( isOpen ) {
 
 
 /**
- * Extend the picker to add the component with the defaults.
+ * Extend the picker to add the components with the defaults.
  */
 TimePicker.defaults = (function( prefix ) {
 

@@ -99,7 +99,7 @@ class AdminSettingController extends Controller
         $setting->footer_facebook = $request->footer_facebook;
         $setting->footer_twitter = $request->footer_twitter;
         $setting->footer_instagram = $request->footer_instagram;
-        $setting->footer_linkedin = $request->footer_linkedin;
+        $setting->footer_youtube = $request->footer_linkedin;
         $setting->footer_copyright = $request->footer_copyright;
         $setting->save();
 

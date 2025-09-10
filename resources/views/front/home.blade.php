@@ -1,6 +1,7 @@
 @extends('front.layouts.master')
 
 @section('main_content')
+
     <!--Sliders Section-->
     <section>
         <div class="banner-1 cover-image sptb-2 sptb-tab bg-background2" data-bs-image-src="{{asset('uploads/'.$global_setting->banner)}}">
@@ -280,7 +281,6 @@
             });
         });
     </script>
-
 
 
     <!--Categories-->
@@ -613,11 +613,11 @@
                                     <a href="{{ $detailsUrl }}" class="item-card2-icons-l bg-primary">
                                         <i class="fa fa-home"></i>
                                     </a>
+                                    @include('components.wish.btn', [
+                                        'propertyId' => $p->id,
+                                        'wished'     => (bool)($p->wishlisted ?? 0) // أو استخدم دالتك/كاشك إن متوفر
+                                            ])
 
-                                    <a href="{{ $wishUrl }}" class="item-card2-icons-r bg-secondary"
-                                       @if(!Auth::guard('web')->check()) title="سجّل دخول لإضافة للمفضلة" @endif>
-                                        <i class="fa fa fa-heart-o"></i>
-                                    </a>
                                 </div>
 
                                 <div class="card-body">
@@ -895,30 +895,10 @@
                                                 </div>
                                             </div>
                                             <p class="text-white-80">
-                                                <i class="fa fa-quote-left text-white-80"></i> لوريم إيبسوم هو نص افتراضي يُستخدم في صناعة الطباعة والتنضيد. يُستخدم هذا النص لملء الفراغات وإظهار شكل المحتوى الحقيقي عند اكتماله.
+                                                <i class="fa fa-quote-left text-white-80"></i> ياخي أهم شي خلصتونا من علق بنقطة ليصلك السعر،وفقكم الله وسدد خطاكم.
                                             </p>
-                                            <h3 class="title">Elizabeth</h3>
-                                            <div class="rating-stars mb-2 d-block">
-                                                <input type="number" readonly="readonly" class="rating-value star" name="rating-stars-value" value="4">
-                                                <div class="rating-stars-container">
-                                                    <div class="rating-star sm ">
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="rating-star sm ">
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="rating-star sm ">
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="rating-star sm">
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                    <div class="rating-star sm">
-                                                        <i class="fa fa-star"></i>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <a href="testimonial.html" class="btn btn-secondary btn-lg">عرض كل الشهادات</a>
+                                            <h3 class="title">سفيان من إدلب</h3>
+
                                         </div>
                                     </div>
                                 </div>
@@ -940,30 +920,10 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <p class="text-white-80"><i class="fa fa-quote-left"></i> لا يوجد من يرغب في الألم لكونه ألمًا، بل لأنه قد يجلب منفعة ما في بعض الأحيان. نص تجريبي يوضح مكان المحتوى الحقيقي عند العرض.</p>
+                                            <p class="text-white-80"><i class="fa fa-quote-left"></i> خيارات لا محدودة وشفافية في العرض بيض الله وجهكم والله يوفقكم.</p>
                                             <div class="testimonia-data">
-                                                <h3 class="title">williamson</h3>
-                                                <div class="rating-stars">
-                                                    <input type="number" readonly="readonly" class="rating-value star" name="rating-stars-value"  value="3">
-                                                    <div class="rating-stars-container mb-2">
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                    </div>
-                                                    <a href="testimonial.html" class="btn btn-secondary btn-lg">عرض كل الشهادات</a>
-                                                </div>
+                                                <h3 class="title">فادية من إدلب</h3>
+
                                             </div>
                                         </div>
                                     </div>
@@ -986,30 +946,10 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <p class="text-white-80"><i class="fa fa-quote-left"></i> نص تجريبي آخر يوضح الانطباعات حول الخدمة. هذا النص بديل للمحتوى الحقيقي وسيُستبدل لاحقًا بالمراجعات الأصلية.</p>
+                                            <p class="text-white-80"><i class="fa fa-quote-left"></i>موقع فريد من نوعه شكرا للقائمين عليه من أعماق القلب</p>
                                             <div class="testimonia-data">
-                                                <h3 class="title">Sophie Carr</h3>
-                                                <div class="rating-stars">
-                                                    <input type="number" readonly="readonly" class="rating-value star" name="rating-stars-value"  value="3">
-                                                    <div class="rating-stars-container mb-2">
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                        <div class="rating-star sm">
-                                                            <i class="fa fa-star"></i>
-                                                        </div>
-                                                    </div>
-                                                    <a href="testimonial.html" class="btn btn-secondary btn-lg">عرض كل الشهادات</a>
-                                                </div>
+                                                <h3 class="title">محمد من حلب</h3>
+
                                             </div>
                                         </div>
                                     </div>

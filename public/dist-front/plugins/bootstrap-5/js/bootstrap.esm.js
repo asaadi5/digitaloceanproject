@@ -660,7 +660,7 @@ const Data = {
 
 /**
  * --------------------------------------------------------------------------
- * Bootstrap (v5.1.3): base-component.js
+ * Bootstrap (v5.1.3): base-components.js
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  * --------------------------------------------------------------------------
  */
@@ -711,7 +711,7 @@ class BaseComponent {
   }
 
   static get NAME() {
-    throw new Error('You have to implement the static method "NAME", for each component!');
+    throw new Error('You have to implement the static method "NAME", for each components!');
   }
 
   static get DATA_KEY() {
@@ -726,7 +726,7 @@ class BaseComponent {
 
 /**
  * --------------------------------------------------------------------------
- * Bootstrap (v5.1.3): util/component-functions.js
+ * Bootstrap (v5.1.3): util/components-functions.js
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  * --------------------------------------------------------------------------
  */

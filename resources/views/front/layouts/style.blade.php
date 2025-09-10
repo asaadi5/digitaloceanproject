@@ -5,3 +5,4 @@
 <link href="{{ asset('dist-front/plugins/pscrollbar/pscrollbar.css') }}" rel="stylesheet" />
 <link href="{{ asset('dist-front/plugins/owl-carousel/owl.carousel.css') }}" rel="stylesheet" />
 <link rel="stylesheet" href="{{ asset('dist-front/css/iziToast.min.css') }}">
+<link href="{{ asset('dist-front/plugins/fancyuploder/fancy_fileupload.css')}}" rel="stylesheet" />

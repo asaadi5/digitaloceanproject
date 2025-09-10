@@ -65,7 +65,7 @@ function DatePicker( picker, settings ) {
         enable: 'activate'
     }
 
-    // The component's item object.
+    // The components's item object.
     calendar.item = {}
 
     calendar.item.clear = null
@@ -396,7 +396,7 @@ DatePicker.prototype.normalize = function( value/*, options*/ ) {
 DatePicker.prototype.measure = function( type, value/*, options*/ ) {
 
     var calendar = this
-    
+
     // If it's an integer, get a date relative to today.
     if ( _.isInteger( value ) ) {
         value = calendar.now( type, value, { rel: value } )

@@ -9,9 +9,6 @@
  */
 
 namespace App\Http\Controllers\Front;
-
-namespace App\Http\Controllers\Front; // كما كان في ملفك الأصلي (مكرر عمدًا)
-
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -487,7 +484,7 @@ class FrontController extends Controller
     {
         // Keep explicit conditions as in your code to ensure identical results
         $locations = Location::withCount(['properties' => function ($query) {
-            $query->where('status', 'Active')
+            $query->where('status', 'active')
                 ->whereHas('agent', function($q) {
                     $q->whereHas('orders', function($qq) {
                         $qq->where('currently_active', 1)
@@ -515,7 +512,7 @@ class FrontController extends Controller
         }
 
         $properties = Property::where('location_id', $location->id)
-            ->where('status', 'Active')
+            ->where('status', 'active')
             ->whereHas('agent', function($query) {
                 $query->whereHas('orders', function($q) {
                     $q->where('currently_active', 1)
@@ -552,12 +549,14 @@ class FrontController extends Controller
     public function agent($id)
     {
         $agent = Agent::where('id', $id)->first();
+
         if (!$agent) {
-            return redirect()->route('home')->with('error', 'Agent not found');
+            // كان redirect()->with('error', 'Agent not found');
+            abort(404, 'Agent not found'); // لا يفلّش رسالة في السيشن
         }
 
         $properties = Property::where('agent_id', $agent->id)
-            ->where('status', 'Active')
+            ->where('status', 'active')
             ->whereHas('agent', function($query) {
                 $query->whereHas('orders', function($q) {
                     $q->where('currently_active', 1)
@@ -579,27 +578,55 @@ class FrontController extends Controller
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_search(Request $request)
     {
-        // Route slugs → merge into request as your code does
+        // Slugs from the route (قد تأتي كـ purpose/category/type أو slug لموقع)
         $purposeSlug  = $request->route('purpose');   // sale|rent|wanted
         $categorySlug = $request->route('category');  // residential|commercial|recreational|lands
         $typeSlug     = $request->route('type');      // apartment|villa|...
-        $locationSlug = $request->route('slug');      // /properties/{slug}
+        $locationSlug = $request->route('slug');      // /properties/{slug} (قد تكون محافظة أو شيء آخر)
         $locationRow  = null;
 
+        // إن كان الـ slug هو موقع فعلاً
         if ($locationSlug) {
             $locationRow = Location::select('id','name')->where('slug', $locationSlug)->first();
             if ($locationRow) {
-                // Inject location_id if found
                 $request->merge(['location_id' => $locationRow->id]);
             }
         }
 
-        // Normalize purpose into purpose_in[]
+        // إن لم نجد موقعاً بهذا الـ slug، جرّبه كغرض/فئة رئيسية/نوع
+        if ($locationSlug && !$locationRow) {
+            // غرض: sale | rent | wanted (يدعم العربية)
+            if (in_array($locationSlug, ['sale','rent','wanted','بيع','إيجار','مطلوب'], true)) {
+                $purposeSlug = in_array($locationSlug, ['بيع','إيجار','مطلوب'], true)
+                    ? (['بيع' => 'sale', 'إيجار' => 'rent', 'مطلوب' => 'wanted'][$locationSlug])
+                    : $locationSlug;
+
+                if (!$request->filled('purpose_in')) {
+                    $request->merge(['purpose_in' => [$purposeSlug]]);
+                }
+            }
+            // فئة رئيسية: residential | commercial | recreational | lands
+            elseif ($catId = Type::whereNull('parent_id')->where('slug', $locationSlug)->value('id')) {
+                $categorySlug = $locationSlug;
+                if (!$request->filled('category_id')) {
+                    $request->merge(['category_id' => $catId]);
+                }
+            }
+            // نوع فرعي: slug النوع
+            elseif ($typeId = Type::where('slug', $locationSlug)->value('id')) {
+                $typeSlug = $locationSlug;
+                if (!$request->filled('type')) {
+                    $request->merge(['type' => $typeId]);
+                }
+            }
+        }
+
+        // طبيعياً: لو الغرض جاء من الراوت (ولم تُرسل purpose_in)
         if ($purposeSlug && !$request->filled('purpose_in')) {
             $request->merge(['purpose_in' => [$purposeSlug]]);
         }
 
-        // Map main category slug → id (1..4)
+        // لو الفئة الرئيسية من الراوت
         if ($categorySlug && !$request->filled('category_id')) {
             $catId = Type::whereNull('parent_id')->where('slug', $categorySlug)->value('id');
             if ($catId) {
@@ -607,18 +634,18 @@ class FrontController extends Controller
             }
         }
 
-        // Pass type as-is (numeric id or slug/name supported)
+        // لو النوع من الراوت
         if ($typeSlug && !$request->filled('type')) {
             $request->merge(['type' => $typeSlug]);
         }
 
-        // Auto-inject featured on /properties/featured
-        $currentRoute = Route::currentRouteName();
+        // تفعيل المميّز تلقائياً لمسار /properties/featured
+        $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
         if ($currentRoute === 'properties_featured' && !$request->has('featured')) {
             $request->merge(['featured' => 1, 'sort' => $request->query('sort', 'newest')]);
         }
 
-        // Gather inputs (unchanged)
+        // === Inputs (كما هي) ===
         $name          = trim((string) $request->query('name', ''));
         $typeParam     = $request->query('type');
         $areaRange     = trim((string) $request->query('area_range', ''));
@@ -628,22 +655,21 @@ class FrontController extends Controller
         $categoryId    = $request->integer('category_id');
         $sort          = $request->query('sort', 'newest');
 
-        // New filter fields (as in your code)
         $priceMin      = $request->query('price_min');
         $priceMax      = $request->query('price_max');
         $bedroomMin    = $request->query('bedroom');
         $featuredOnly  = $request->boolean('featured');
         $locationId    = $request->input('location_id');
 
-        // Escape helper for LIKE
+        // LIKE escape helper
         $escapeLike = static function (string $v): string {
             return addcslashes($v, "\\%_");
         };
 
-        // Base query — active properties only
+        // === Query ===
         $query = Property::query()->where('status', 'active');
 
-        // purpose_in[] (supports ar/en and synonyms)
+        // purpose_in[] (يدعم مرادفات ar/en)
         $purposeIn = (array) $request->query('purpose_in', []);
         if (!empty($purposeIn)) {
             $all = [];
@@ -653,17 +679,14 @@ class FrontController extends Controller
             $query->whereIn('purpose', array_unique($all));
         }
 
-        // Location by ID or fallback to address text filter
+        // الموقع ID أو نص العنوان
         if ($locationId) {
             $query->where('location_id', $locationId);
-        } elseif ($request->filled('city_text')) {
-            $ct = trim((string) $request->query('city_text', ''));
-            if ($ct !== '') {
-                $query->where('address', 'like', '%'.$escapeLike($ct).'%');
-            }
+        } elseif ($cityText !== '') {
+            $query->where('address', 'like', '%'.$escapeLike($cityText).'%');
         }
 
-        // Category main → restrict types to parent or its children
+        // الفئة الرئيسية → تقييد الأنواع
         if ($categoryId) {
             $allowedTypeIds = Type::where('id', $categoryId)->orWhere('parent_id', $categoryId)->pluck('id');
             if ($allowedTypeIds->isNotEmpty()) {
@@ -671,7 +694,7 @@ class FrontController extends Controller
             }
         }
 
-        // Type: numeric id or slug/name
+        // النوع (ID أو slug/اسم)
         if ($typeParam !== null && $typeParam !== '') {
             if (is_numeric($typeParam)) {
                 $query->where('type_id', (int) $typeParam);
@@ -683,15 +706,15 @@ class FrontController extends Controller
             }
         }
 
-        // Name (title)
+        // العنوان (الاسم)
         if ($name !== '') {
             $query->where('name', 'like', '%'.$escapeLike($name).'%');
         }
 
-        // Area range normalization (same patterns logic)
+        // نطاق المساحة "100-200" / "150+" / "-120"
         if ($areaRange !== '') {
             $range = preg_replace('/\s+/', '', $areaRange);
-            [$mode, $a, $b] = $this->normalizeAreaRange($range); // returns array as per your patterns
+            [$mode, $a, $b] = $this->normalizeAreaRange($range);
             if ($mode === 'between') {
                 if ($a > $b) { [$a, $b] = [$b, $a]; }
                 $query->whereBetween('size', [$a, $b]);
@@ -702,7 +725,7 @@ class FrontController extends Controller
             }
         }
 
-        // Price min/max
+        // السعر
         if ($priceMin !== null && $priceMin !== '' && is_numeric($priceMin)) {
             $query->where('price', '>=', (float) $priceMin);
         }
@@ -710,37 +733,34 @@ class FrontController extends Controller
             $query->where('price', '<=', (float) $priceMax);
         }
 
-        // Bedrooms minimum
+        // غرف النوم (حد أدنى)
         if ($bedroomMin !== null && $bedroomMin !== '' && is_numeric($bedroomMin)) {
             $query->where('bedroom', '>=', (int) $bedroomMin);
         }
 
-        // Address filters
-        if ($cityText !== '') {
-            $query->where('address', 'like', '%'.$escapeLike($cityText).'%');
-        }
+        // نصوص العنوان الإضافية
         if ($provinceText !== '') {
             $query->where('address', 'like', '%'.$escapeLike($provinceText).'%');
         }
 
-        // Featured only
+        // المميّز فقط
         if ($featuredOnly) {
             $query->where('is_featured', 'yes');
         }
 
-        // Sorting (identical map)
+        // الفرز
         $this->applySort($query, $sort);
 
-        // Results with type eager load and same pagination
+        // النتائج
         $properties = $query->with('type')->paginate(12)->withQueryString();
 
-        // Side collections for blade (unchanged)
+        // مجموعات الأنواع (للاستخدام في الـ Blade)
         $resiTypeIds  = $this->typeIdsFor(1);
         $commTypeIds  = $this->typeIdsFor(2);
         $recreTypeIds = $this->typeIdsFor(3);
         $landsTypeIds = $this->typeIdsFor(4);
 
-        // Page title composition (same priority rules)
+        // العنوان
         $pageTitle = $this->buildSearchPageTitle(
             $purposeSlug, $purposeParam, $purposeIn,
             $typeSlug, $typeParam, $escapeLike,

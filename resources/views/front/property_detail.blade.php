@@ -3,7 +3,8 @@
 @section('main_content')
     <!--Breadcrumb-->
     <section>
-        <div class="bannerimg cover-image bg-background3" data-bs-image-src="{{ asset('uploads/' . $global_setting->banner) }}">
+        <div class="bannerimg cover-image bg-background3"
+             data-bs-image-src="{{ asset('uploads/' . $global_setting->banner) }}">
             <div class="header-text mb-0">
                 <div class="container">
                     <div class="text-center text-white">
@@ -28,6 +29,7 @@
                             {{ $isRent ? 'للإيجار' : 'للبيع' }}
                             </span>
                         </div>
+
 
                         <div class="card-body">
                             <div class="item-det mb-4">
@@ -64,9 +66,15 @@
                             <div class="product-slider carousel-slide-1">
                                 <div id="carouselFade" class="carousel slide carousel-fade" data-bs-ride="carousel"
                                      data-bs-loop="false" data-bs-thumb="true" data-bs-dots="false">
+
                                     <div class="arrow-ribbon2 bg-primary">
                                         {{ num($property->price) }} $
-
+                                    </div>
+                                    <div class="item-card2-icons style= left:0;right:auto m-2">
+                                        @include('components.wish.btn', [
+                                            'propertyId' => $property->id,
+                                            'wished'     => (bool)($property->wishlisted ?? 0)
+                                        ])
                                     </div>
                                     <div class="carousel-inner slide-show-image" id="full-gallery">
                                         @php $first = true; @endphp
@@ -81,10 +89,12 @@
                                             </div>
                                         @endforelse
                                         <div class="thumbcarousel">
-                                            <a class="carousel-control-prev" href="#carouselFade" role="button" data-bs-slide="prev">
+                                            <a class="carousel-control-prev" href="#carouselFade" role="button"
+                                               data-bs-slide="prev">
                                                 <i class="fa fa-angle-left" aria-hidden="true"></i>
                                             </a>
-                                            <a class="carousel-control-next" href="#carouselFade" role="button" data-bs-slide="next">
+                                            <a class="carousel-control-next" href="#carouselFade" role="button"
+                                               data-bs-slide="next">
                                                 <i class="fa fa-angle-right" aria-hidden="true"></i>
                                             </a>
                                         </div>
@@ -133,35 +143,51 @@
                                                 <tbody>
                                                 <tr>
                                                     <td>النوع</td>
-                                                    <td><span class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>الإدراج بواسطة</td>
-                                                    <td><span class="font-weight-bold">{{ optional($property->agent)->name ?? 'مُعلن' }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ optional($property->agent)->name ?? 'مُعلن' }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>غرف النوم</td>
-                                                    <td><span class="font-weight-bold">{{ num($property->bedroom) }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->bedroom) }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>الحمّامات</td>
-                                                    <td><span class="font-weight-bold">{{ num($property->bathroom) }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->bathroom) }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>التأثيث</td>
-                                                    <td><span class="font-weight-bold">{{ $property->furnished ?? '-' }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ $property->furnished ?? '-' }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>مواقف سيارات</td>
-                                                    <td><span class="font-weight-bold">{{ num($property->garage) }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->garage) }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>عدد الطوابق</td>
-                                                    <td><span class="font-weight-bold">{{ num($property->floor) }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->floor) }}</span>
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <td>الواجهة</td>
-                                                    <td><span class="font-weight-bold">{{ $property->facing ?? '-' }}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ $property->facing ?? '-' }}</span>
+                                                    </td>
                                                 </tr>
                                                 </tbody>
                                             </table>
@@ -177,14 +203,54 @@
                                         <div class="table-responsive">
                                             <table class="table table-bordered border-top mb-0">
                                                 <tbody>
-                                                <tr><td>غرف النوم</td><td><i class="fa {{ $property->bedroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>الحمّامات</td><td><i class="fa {{ $property->bathroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>موقف سيارات</td><td><i class="fa {{ $property->garage ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>مفروش</td><td><i class="fa {{ ($property->furnished ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>واجهة</td><td><i class="fa {{ ($property->facing ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>مصعد</td><td><i class="fa {{ ($property->has_lift ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>مسبح</td><td><i class="fa {{ ($property->has_pool ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
-                                                <tr><td>حراسة</td><td><i class="fa {{ ($property->has_security ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i></td></tr>
+                                                <tr>
+                                                    <td>غرف النوم</td>
+                                                    <td>
+                                                        <i class="fa {{ $property->bedroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الحمّامات</td>
+                                                    <td>
+                                                        <i class="fa {{ $property->bathroom ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>موقف سيارات</td>
+                                                    <td>
+                                                        <i class="fa {{ $property->garage ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مفروش</td>
+                                                    <td>
+                                                        <i class="fa {{ ($property->furnished ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>واجهة</td>
+                                                    <td>
+                                                        <i class="fa {{ ($property->facing ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مصعد</td>
+                                                    <td>
+                                                        <i class="fa {{ ($property->has_lift ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مسبح</td>
+                                                    <td>
+                                                        <i class="fa {{ ($property->has_pool ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>حراسة</td>
+                                                    <td>
+                                                        <i class="fa {{ ($property->has_security ?? null) ? 'fa-check-circle text-success' : 'fa-times-circle text-danger' }}"></i>
+                                                    </td>
+                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -196,7 +262,8 @@
                                     <h6 class="mb-3">المرافق</h6>
                                     <div class="row">
                                         @foreach($amenities as $am)
-                                            <div class="col-md-4 mb-2"><i class="fa fa-check-circle text-success me-2"></i>{{ $am }}</div>
+                                            <div class="col-md-4 mb-2"><i
+                                                    class="fa fa-check-circle text-success me-2"></i>{{ $am }}</div>
                                         @endforeach
                                     </div>
                                 @endif
@@ -209,16 +276,66 @@
                                         <div class="table-responsive">
                                             <table class="table table-bordered border-top mb-0">
                                                 <tbody>
-                                                <tr><td>النوع</td><td><span class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span></td></tr>
-                                                <tr><td>الحمّامات</td><td><span class="font-weight-bold">{{ num($property->bathroom) }}</span></td></tr>
-                                                <tr><td>المساحة</td><td><span class="font-weight-bold">{{ num($property->size) }} م²</span></td></tr>
-                                                <tr><td>الواجهة</td><td><span class="font-weight-bold">{{ $property->facing ?? '-' }}</span></td></tr>
-                                                <tr><td>غرف النوم</td><td><span class="font-weight-bold">{{ num($property->bedroom) }}</span></td></tr>
-                                                <tr><td>التأثيث</td><td><span class="font-weight-bold">{{ $property->furnished ?? '-' }}</span></td></tr>
-                                                <tr><td>بلكونة</td><td><span class="font-weight-bold">{{ num($property->balcony) }}</span></td></tr>
-                                                <tr><td>مصعد</td><td><span class="font-weight-bold">{{ ($property->has_lift ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
-                                                <tr><td>مسبح</td><td><span class="font-weight-bold">{{ ($property->has_pool ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
-                                                <tr><td>حديقة</td><td><span class="font-weight-bold">{{ ($property->has_garden ?? null) ? 'نعم' : 'لا' }}</span></td></tr>
+                                                <tr>
+                                                    <td>النوع</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ optional($property->type)->name ?? '-' }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الحمّامات</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->bathroom) }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>المساحة</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->size) }} م²</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>الواجهة</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ $property->facing ?? '-' }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>غرف النوم</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->bedroom) }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>التأثيث</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ $property->furnished ?? '-' }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>بلكونة</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ num($property->balcony) }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مصعد</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ ($property->has_lift ?? null) ? 'نعم' : 'لا' }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>مسبح</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ ($property->has_pool ?? null) ? 'نعم' : 'لا' }}</span>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>حديقة</td>
+                                                    <td><span
+                                                            class="font-weight-bold">{{ ($property->has_garden ?? null) ? 'نعم' : 'لا' }}</span>
+                                                    </td>
+                                                </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -256,12 +373,14 @@
                                             @if($url)
                                                 <a href="{{ $url }}" target="_blank">
                                                     <img src="{{ $thumb }}" alt="video" class="img-responsive">
-                                                    <span class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
+                                                    <span
+                                                        class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
                                                 </a>
                                             @elseif($file)
                                                 <a href="{{ asset($file) }}" target="_blank">
                                                     <img src="{{ $thumb }}" alt="video" class="img-responsive">
-                                                    <span class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
+                                                    <span
+                                                        class="mdi mdi-arrow-right-drop-circle-outline text-white"></span>
                                                 </a>
                                             @else
                                                 <img src="{{ $thumb }}" alt="video" class="img-responsive">
@@ -303,7 +422,8 @@
                                                     <td>{{ optional($doc->issued_at)->format('Y-m-d') }}</td>
                                                     <td>
                                                         @if($href)
-                                                            <a href="{{ $href }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <a href="{{ $href }}" target="_blank"
+                                                               class="btn btn-sm btn-outline-primary">
                                                                 <i class="fa fa-download"></i> فتح
                                                             </a>
                                                         @else
@@ -355,47 +475,51 @@
                                         <a class="mb-0">رقم الإعلان : #{{ $property->id }}</a>
                                     </div>
                                     <div class="col col-auto">
-                                        المُعلن: <a class="mb-0 font-weight-bold" href="{{ route('agent', $property->agent->id) }}">{{ optional($property->agent)->name }}</a> /
-                                        {{ optional($property->created_at)->format('Y-m-d') }}
+                                        المُعلن: <a class="mb-0 font-weight-bold"
+                                                    href="{{ route('agent', $property->agent->id) }}">{{ optional($property->agent)->name }}</a>
+                                        /
+                                        {{  ar_date($property->created_at)  }}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card-footer bg-white details-tab border">
-                            <div class="icons">
-                                <a href="javascript:void(0);" class="btn btn-info icons"><i class="icon icon-share me-1"></i> مشاركة</a>
-                                <a href="javascript:void(0);" class="btn btn-primary icons"><i class="icon icon-heart me-1"></i> {{ num($property->favorites_count ?? 678) }}</a>
-                                <a href="javascript:void(0);" class="btn btn-secondary icons"><i class="icon icon-printer me-1"></i> طباعة</a>
-                            </div>
-                        </div>
                     </div>
-
                     <h3 class="mb-5 mt-4">عقارات مشابهة</h3>
                     <div id="myCarousel5" class="owl-carousel owl-carousel-icons3">
                         @foreach($related as $rp)
                             <div class="item">
                                 <div class="card">
-                                    <div class="arrow-ribbon {{ (Str::lower($rp->purpose) === 'rent') ? 'bg-secondary' : 'bg-primary' }}">
+                                    <div
+                                        class="arrow-ribbon {{ (Str::lower($rp->purpose) === 'rent') ? 'bg-secondary' : 'bg-primary' }}">
                                         {{ (Str::lower($rp->purpose) === 'rent') ? 'للإيجار' : 'للبيع' }}
                                     </div>
                                     <div class="item-card7-imgs">
                                         <a href="{{ route('property_detail', $rp->slug) }}"></a>
-                                        <img src="{{ asset('uploads/'.$rp->featured_photo) }}" alt="img" class="cover-image">
+                                        <img src="{{ asset('uploads/'.$rp->featured_photo) }}" alt="img"
+                                             class="cover-image">
                                     </div>
                                     <div class="item-card7-overlaytext">
-                                        <a href="{{ route('property_detail', $rp->slug) }}" class="text-white">{{ optional($rp->type)->name }}</a>
+                                        <a href="{{ route('property_detail', $rp->slug) }}"
+                                           class="text-white">{{ optional($rp->type)->name }}</a>
                                         <h4 class="mb-0">{{ num($rp->price) }}</h4>
                                     </div>
                                     <div class="card-body">
                                         <div class="item-card7-desc">
-                                            <a href="{{ route('property_detail', $rp->slug) }}" class="text-dark"><h4 class="font-weight-semibold">{{ $rp->name }}</h4></a>
+                                            <a href="{{ route('property_detail', $rp->slug) }}" class="text-dark"><h4
+                                                    class="font-weight-semibold">{{ $rp->name }}</h4></a>
                                         </div>
                                         <div class="item-card7-text">
                                             <ul class="icon-card mb-0">
-                                                <li><a href="javascript:void(0);" class="icons"><i class="icon icon-location-pin text-muted me-1"></i> {{ optional($rp->location)->name }}</a></li>
-                                                <li><a href="javascript:void(0);" class="icons"><i class="icon icon-event text-muted me-1"></i> {{ optional($rp->created_at)->diffForHumans() }}</a></li>
-                                                <li class="mb-0"><a href="javascript:void(0);" class="icons"><i class="icon icon-user text-muted me-1"></i> {{ optional($rp->agent)->name }}</a></li>
+                                                <li><a href="javascript:void(0);" class="icons"><i
+                                                            class="icon icon-location-pin text-muted me-1"></i> {{ optional($rp->location)->name }}
+                                                    </a></li>
+                                                <li><a href="javascript:void(0);" class="icons"><i
+                                                            class="icon icon-event text-muted me-1"></i> {{ optional($rp->created_at)->diffForHumans() }}
+                                                    </a></li>
+                                                <li class="mb-0"><a href="javascript:void(0);" class="icons"><i
+                                                            class="icon icon-user text-muted me-1"></i> {{ optional($rp->agent)->name }}
+                                                    </a></li>
                                             </ul>
                                             <p class="mb-0"> المساحة {{ num($rp->size) }} م²</p>
                                         </div>
@@ -415,7 +539,8 @@
                         </div>
                         <div class="card-body item-user">
                             <div class="profile-pic mb-0">
-                                <img src="{{ asset('uploads/'.(optional($property->agent)->photo)) }}" class="brround avatar-xxl" alt="user">
+                                <img src="{{ asset('uploads/'.(optional($property->agent)->photo)) }}"
+                                     class="brround avatar-xxl" alt="user">
                                 <div class="">
                                     <a href="{{ route('agent', $property->agent->id) }}" class="text-dark">
                                         <h4 class="mt-3 mb-1 font-weight-semibold">{{ optional($property->agent)->name }}</h4>
@@ -423,7 +548,8 @@
                                     <p class="mb-0">وكيل عقاري</p>
                                     <span class="text-muted">الهاتف: {{ optional($property->agent)->phone }}</span>
                                     <h6 class="mt-2 mb-0">
-                                        <a href="{{ route('agent', $property->agent->id) }}" class="btn btn-primary btn-sm">كل إعلاناته</a>
+                                        <a href="{{ route('agent', $property->agent->id) }}"
+                                           class="btn btn-primary btn-sm">كل إعلاناته</a>
                                     </h6>
                                 </div>
                             </div>
@@ -431,12 +557,17 @@
                         <div class="card-body item-user">
                             <h4 class="mb-4">معلومات التواصل</h4>
                             <div>
-                                <h6><span class="font-weight-semibold"><i class="fa fa-map-marker me-2 mb-2"></i></span><span class="text-body">{{ $property->address }}</span></h6>
-                                <h6><span class="font-weight-semibold"><i class="fa fa-envelope me-2 mb-2"></i></span><span class="text-body">{{ optional($property->agent)->email }}</span></h6>
-                                <h6><span class="font-weight-semibold"><i class="fa fa-phone me-2 mb-2"></i></span><span class="text-body">{{ optional($property->agent)->phone }}</span></h6>
+                                <h6><span class="font-weight-semibold"><i class="fa fa-map-marker me-2 mb-2"></i></span><span
+                                        class="text-body">{{ $property->address }}</span></h6>
+                                <h6><span class="font-weight-semibold"><i
+                                            class="fa fa-envelope me-2 mb-2"></i></span><span
+                                        class="text-body">{{ optional($property->agent)->email }}</span></h6>
+                                <h6><span class="font-weight-semibold"><i class="fa fa-phone me-2 mb-2"></i></span><span
+                                        class="text-body">{{ optional($property->agent)->phone }}</span></h6>
                             </div>
                             <div class="item-user-icons mt-4">
-                                <a href="javascript:void(0);" class="facebook-bg mt-0"><i class="fa fa-whatsapp"></i></a>
+                                <a href="javascript:void(0);" class="facebook-bg mt-0"><i
+                                        class="fa fa-whatsapp"></i></a>
                                 <a href="javascript:void(0);" class="twitter-bg"><i class="fa fa-twitter"></i></a>
                                 <a href="javascript:void(0);" class="google-bg"><i class="fa fa-telegram"></i></a>
                                 <a href="javascript:void(0);" class="dribbble-bg"><i class="fa fa-facebook"></i></a>
@@ -444,7 +575,8 @@
                         </div>
                         <div class="card-footer">
                             <div class="text-start">
-                                <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#contact"><i class="fa fa-user"></i> إرسال رسالة</a>
+                                <a href="javascript:void(0);" class="btn btn-primary" data-bs-toggle="modal"
+                                   data-bs-target="#contact"><i class="fa fa-user"></i> إرسال رسالة</a>
                             </div>
                         </div>
                     </div>
@@ -461,11 +593,15 @@
                                             <li class="item">
                                                 <div class="media p-5 mt-0">
                                                     <a href="{{ route('property_detail', $ap->slug) }}" class="me-4">
-                                                        <img class="" src="{{ asset('uploads/'.$ap->featured_photo) }}" alt="img" style="width:64px;height:48px;object-fit:cover">
+                                                        <img class="" src="{{ asset('uploads/'.$ap->featured_photo) }}"
+                                                             alt="img" style="width:64px;height:48px;object-fit:cover">
                                                     </a>
                                                     <div class="media-body">
-                                                        <a href="{{ route('property_detail', $ap->slug) }}"><h4 class="mt-2 mb-1">{{ \Illuminate\Support\Str::limit($ap->name, 40) }}</h4></a>
-                                                        <div class="h5 mb-0 font-weight-semibold mt-1">{{ num($ap->price) }} {{ $ap->currency ?? '$' }}</div>
+                                                        <a href="{{ route('property_detail', $ap->slug) }}"><h4
+                                                                class="mt-2 mb-1">{{ \Illuminate\Support\Str::limit($ap->name, 40) }}</h4>
+                                                        </a>
+                                                        <div
+                                                            class="h5 mb-0 font-weight-semibold mt-1">{{ num($ap->price) }} {{ $ap->currency ?? '$' }}</div>
                                                     </div>
                                                 </div>
                                             </li>
@@ -502,12 +638,17 @@
                                                 <tr>
                                                     <td>
                                                         <a href="{{ route('property_detail', $lp->slug) }}">
-                                                            <img src="{{ asset('uploads/'.$lp->featured_photo) }}" alt="img" class="w-8 border" style="width:48px;height:48px;object-fit:cover"/>
+                                                            <img src="{{ asset('uploads/'.$lp->featured_photo) }}"
+                                                                 alt="img" class="w-8 border"
+                                                                 style="width:48px;height:48px;object-fit:cover"/>
                                                         </a>
                                                     </td>
                                                     <td class="ps-4">
-                                                        <h5 class="mb-1 "><a class="btn-link" href="{{ route('property_detail', $lp->slug) }}">{{ \Illuminate\Support\Str::limit($lp->name, 28) }}</a></h5>
-                                                        <span class="float-end font-weight-bold">{{ num($lp->price) }}</span>
+                                                        <h5 class="mb-1 "><a class="btn-link"
+                                                                             href="{{ route('property_detail', $lp->slug) }}">{{ \Illuminate\Support\Str::limit($lp->name, 28) }}</a>
+                                                        </h5>
+                                                        <span
+                                                            class="float-end font-weight-bold">{{ num($lp->price) }}</span>
                                                     </td>
                                                 </tr>
                                             </table>

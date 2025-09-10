@@ -9,8 +9,7 @@ return [
     'allowed_methods' => ['*'],
 
     // اقرأ الدومينات المسموح بها من .env (استخدم * للتجارب فقط)
-    'allowed_origins' => array_filter(array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS', '*')))),
-
+    'allowed_origins' => ['*'],
     'allowed_origins_patterns' => [],
 
     // اسمح بكل الهيدرز

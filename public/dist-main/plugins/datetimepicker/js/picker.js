@@ -18,7 +18,7 @@
     // Browser globals.
     else if ( typeof window == 'object' )
         window.Picker = factory( jQuery )
-    
+
     else this.Picker = factory( jQuery )
 
 }(function( $ ) {
@@ -100,7 +100,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
                     ELEMENT.type = 'text'
                 }
 
-                // Create a new picker component with the settings.
+                // Create a new picker components with the settings.
                 P.component = new COMPONENT(P, SETTINGS)
 
 
@@ -134,7 +134,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
                 else $ELEMENT.after( P.$root )
 
 
-                // Bind the default component and settings events.
+                // Bind the default components and settings events.
                 P.on({
                     start: P.component.onStart,
                     render: P.component.onRender,
@@ -172,7 +172,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
              */
             render: function( entireComponent ) {
 
-                // Insert a new component holder in the root or box.
+                // Insert a new components holder in the root or box.
                 if ( entireComponent ) {
                     P.$holder = $( createWrappedComponent() )
                     prepareElementHolder()
@@ -488,7 +488,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
                     return ELEMENT.value
                 }
 
-                // Check if a component item exists, return that.
+                // Check if a components item exists, return that.
                 if ( thing in P.component.item ) {
                     if ( typeof format == 'string' ) {
                         var thingValue = P.component.get( thing )
@@ -626,7 +626,7 @@ function PickerConstructor( ELEMENT, NAME, COMPONENT, OPTIONS ) {
 
         $ELEMENT.
 
-            // Store the picker data by component name.
+            // Store the picker data by components name.
             data(NAME, P).
 
             // Add the “input” class name.
@@ -1137,14 +1137,14 @@ PickerConstructor._ = {
 
 
 /**
- * Extend the picker with a component and defaults.
+ * Extend the picker with a components and defaults.
  */
 PickerConstructor.extend = function( name, Component ) {
 
     // Extend jQuery.
     $.fn[ name ] = function( options, action ) {
 
-        // Grab the component data.
+        // Grab the components data.
         var componentData = this.data( name )
 
         // If the picker is requested, return the data object.
@@ -1152,12 +1152,12 @@ PickerConstructor.extend = function( name, Component ) {
             return componentData
         }
 
-        // If the component data exists and `options` is a string, carry out the action.
+        // If the components data exists and `options` is a string, carry out the action.
         if ( componentData && typeof options == 'string' ) {
             return PickerConstructor._.trigger( componentData[ options ], componentData, [ action ] )
         }
 
-        // Otherwise go through each matched element and if the component
+        // Otherwise go through each matched element and if the components
         // doesn’t exist, create a new picker using `this` element
         // and merging the defaults and options with a deep copy.
         return this.each( function() {

@@ -1,57 +1,41 @@
-@extends('front.layouts.master')
+@extends('user.profile.shell', ['activeTab' => 'messages', 'counts' => $counts ?? []])
 
-@section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Customer Message Create</h2>
+@section('profile_tab_content')
+    <h5 class="mb-3">إنشاء رسالة جديدة</h5>
+    <form action="{{ route('message_store') }}" method="post">
+        @csrf
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">اختر الوكيل *</label>
+                <select name="agent_id" class="form-control" required>
+                    <option value="">— اختر —</option>
+                    @foreach($agents as $ag)
+                        <option value="{{ $ag->id }}" @selected(old('agent_id')==$ag->id)>{{ $ag->name }}
+                            — {{ $ag->email }}</option>
+                    @endforeach
+                </select>
+                @error('agent_id')
+                <div class="text-danger small">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">الموضوع *</label>
+                <input type="text" name="subject" class="form-control" value="{{ old('subject') }}" required>
+                @error('subject')
+                <div class="text-danger small">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">نص الرسالة *</label>
+                <textarea name="message" rows="5" class="form-control" required>{{ old('message') }}</textarea>
+                @error('message')
+                <div class="text-danger small">{{ $message }}</div>@enderror
             </div>
         </div>
-    </div>
-</div>
 
-<div class="page-content user-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
-                    @include('user.sidebar.index')
-                </div>
-            </div>
-            <div class="col-lg-9 col-md-12">
-                <a href="{{ route('message') }}" class="btn btn-primary btn-sm mb_10">All Messages</a>
-                <form action="{{ route('message_store') }}" method="post">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="">Subject *</label>
-                        <div class="form-group">
-                            <input type="text" name="subject" class="form-control">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="">Message *</label>
-                        <div class="form-group">
-                            <textarea name="message" class="form-control h-200" cols="30" rows="10"></textarea>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="">Select Agent *</label>
-                        <div class="form-group">
-                            <select name="agent_id" class="form-select">
-                                @foreach ($agents as $item)
-                                <option value="{{ $item->id }}">{{ $item->name }}, {{ $item->company }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <input type="submit" class="btn btn-primary" value="Submit">
-                    </div>
-                </form>
-            </div>
+        <div class="mt-3">
+            <button class="btn btn-primary btn-sm">إرسال</button>
+            <a href="{{ route('message') }}" class="btn btn-light btn-sm">رجوع</a>
         </div>
-    </div>
-</div>
+    </form>
 @endsection

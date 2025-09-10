@@ -24,7 +24,7 @@
             <div class="row">
                 @forelse($locations as $item)
                     <div class="col-xl-3 col-lg-6 col-md-6">
-                        <div class="card mb-0">
+                        <div class="card mb-4">
                             <div class="item-card">
                                 <div class="item-card-desc">
                                     <a href="{{ route('location', $item->slug) }}"></a>

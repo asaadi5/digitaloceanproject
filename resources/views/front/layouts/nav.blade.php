@@ -27,14 +27,19 @@
                 <div class="col-xl-4 col-lg-4 col-sm-8 col-5">
                     @php
                         $isUser  = Auth::guard()->check();        // web user
-                        $isAdmin = Auth::guard('admin')->check(); // admin
+                        $isAgent = Auth::guard('agent')->check(); // agnet
+                        $profileUrl  = '#';
+                         $adsUrl      = '#';
+                        $notiUrl     = Route::has('notifications') ? route('notifications') : 'javascript:void(0);';
+                        $settingsUrl = '#';
+                        $logoutUrl   = '#';
                     @endphp
 
                     <div class="top-bar-right">
                         <ul class="custom">
 
                             {{-- ضيف (غير مسجل دخول) --}}
-                            @if(!$isUser && !$isAdmin)
+                            @if(!$isUser && !$isAgent)
                                 <li>
                                     <a href="{{ route('registration') }}" class="text-dark">
                                         <i class="fa fa-user me-1"></i> <span>التسجيل</span>
@@ -48,43 +53,24 @@
                             @endif
 
                             {{-- مستخدم أو أدمن --}}
-                            @if($isUser || $isAdmin)
-                                <li class="dropdown">
-                                    <a href="javascript:void(0);" class="text-dark" data-bs-toggle="dropdown">
-                                        <i class="fa fa-home me-1"></i><span> لوحة التحكم</span>
+                            @if($isUser)
+                                <li>
+                                    <a href="{{ route('dashboard') }}" class="text-dark">
+                                        <i class="fa fa-home me-1"></i><span> لوحة التحكم </span>
                                     </a>
-                                    <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-
-                                        {{-- ملفي الشخصي (للاثنين) --}}
-                                        @if($isUser)
-                                            <a href="{{ route('profile') }}" class="dropdown-item">
-                                                <i class="dropdown-icon icon icon-user"></i> ملفي الشخصي
-                                            </a>
-                                        @elseif($isAdmin)
-                                            <a href="{{ route('admin_profile') }}" class="dropdown-item">
-                                                <i class="dropdown-icon icon icon-user"></i> ملفي الشخصي
-                                            </a>
-                                        @endif
-
-                                        {{-- المفضلة (فقط للمستخدم) --}}
-                                        @if($isUser)
-                                            <a href="{{ route('wishlist') }}" class="dropdown-item">
-                                                <i class="dropdown-icon icon icon-heart"></i> المفضلة
-                                            </a>
-                                        @endif
-
-                                        {{-- تسجيل الخروج --}}
-                                        @if($isUser)
-                                            <a href="{{ route('logout') }}" class="dropdown-item">
-                                                <i class="dropdown-icon icon icon-power"></i> تسجيل الخروج
-                                            </a>
-                                        @elseif($isAdmin)
-                                            <a href="{{ route('admin_logout') }}" class="dropdown-item">
-                                                <i class="dropdown-icon icon icon-power"></i> تسجيل الخروج
-                                            </a>
-                                        @endif
-
-                                    </div>
+                                    <a href="{{ route('logout') }}" class="text-dark">
+                                        <i class="fa fa-power-off me-1"></i><span> تسجيل الخروج</span>
+                                    </a>
+                                </li>
+                            @endif
+                            @if($isAgent)
+                                <li >
+                                    <a href="{{ route('agent_dashboard') }}" class="text-dark">
+                                        <i class="fa fa-home me-1"></i><span> لوحة التحكم </span>
+                                    </a>
+                                    <a href="{{ route('agent_logout') }}" class="text-dark">
+                                        <i class="fa fa-power-off me-1"></i><span> تسجيل الخروج</span>
+                                    </a>
                                 </li>
                             @endif
 
@@ -194,7 +180,7 @@
                     <li aria-haspopup="true"> <a href="{{ route('pricing') }}">أسعار الإشتراكات</a></li>
                     <li aria-haspopup="true"> <a href="{{ route('blog') }}">المدونة</a></li>
                     <li aria-haspopup="true"> <a href="{{ route('about_us') }}">من نحن</a></li>
-                    <li aria-haspopup="true"> <a href="{{ route('contact') }}"><span class="hmarrow"></span></a></li>
+                    <li aria-haspopup="true"> <a href="{{ route('contact') }}">اتصل بنا</a></li>
                 </ul>
 
 
@@ -205,7 +191,7 @@
                         </li>
                     @elseif(Auth::guard('agent')->check())
                         <li aria-haspopup="true" class="mt-3 d-none d-lg-block top-postbtn">
-                            <span><a class="btn btn-secondary" href="{{ route('agent.dashboard') }}">لوحة التحكم</a></span>
+                            <span><a class="btn btn-secondary" href="{{ route('agent_dashboard') }}">لوحة التحكم</a></span>
                         </li>
                     @else
                         <li aria-haspopup="true" class="mt-3 d-none d-lg-block top-postbtn">

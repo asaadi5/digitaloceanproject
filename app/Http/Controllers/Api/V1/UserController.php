@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, Hash, Mail};
+use Illuminate\Validation\Rules\Password;
 use App\Mail\Websitemail;
 use App\Models\{User, Agent, Wishlist, Message, MessageReply};
 use App\Http\Resources\PropertyResource;
@@ -12,17 +13,16 @@ use App\Http\Resources\PropertyResource;
 class UserController extends Controller
 {
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: register
-    الغرض: تسجيل مستخدم جديد وإرسال إيميل تحقق (JSON)
-    المدخلات: name, username, email, password, confirm_password
+    register: إنشاء مستخدم + إرسال رابط تفعيل
+    ملاحظة: تأكّد أن موديل User يستخدم HasApiTokens لسانكتُم
     ───────────────────────────────────────────────────────────────────────────*/
     public function register(Request $request)
     {
         $request->validate([
             'name'             => 'required|string|max:255',
             'username'         => 'required|string|max:255|unique:users,username',
-            'email'            => 'required|max:255|email|unique:users,email',
-            'password'         => 'required',
+            'email'            => 'required|string|max:255|email|unique:users,email',
+            'password'         => ['required', Password::min(6)],
             'confirm_password' => 'required|same:password',
         ]);
 
@@ -36,25 +36,25 @@ class UserController extends Controller
         $user->token    = $token;
         $user->save();
 
-        $link    = url('registration-verify/'.$token.'/'.$request->email);
+        // استخدم مسار الـ API المعرّف لديك: /api/v1/auth/verify/{token}/{email}
+        $link    = url('api/v1/auth/verify/'.$token.'/'.$request->email); // أو route('api.v1.auth.verify', [$token,$request->email])
         $subject = 'Registration Verification';
-        $message = 'انقر على الرابط لإعادة كلمة السر <br><a href="' . $link . '">' . $link . '</a>';
+        $message = 'انقر على الرابط لتفعيل حسابك: <br><a href="' . $link . '">' . $link . '</a>';
+
         Mail::to($request->email)->send(new Websitemail($subject, $message));
 
         return response()->json(['message' => 'Registered. Check your email to verify.'], 201);
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: verify
-    الغرض: تفعيل المستخدم عبر رابط التحقق (JSON)
-    المسار: GET /api/v1/auth/verify/{token}/{email}
+    verify: تفعيل الحساب عبر التوكن
     ───────────────────────────────────────────────────────────────────────────*/
     public function verify($token, $email)
     {
         $user = User::where('email', $email)->where('token', $token)->first();
         if (!$user) return response()->json(['message' => 'Invalid token or email'], 404);
 
-        $user->token = '';
+        $user->token  = '';
         $user->status = 1;
         $user->save();
 
@@ -62,53 +62,42 @@ class UserController extends Controller
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: login
-    الغرض: تسجيل الدخول وإرجاع توكن Sanctum (يدعم email أو username)
-    المدخلات: login (email or username), password
+    login: يدعم email أو username
     ───────────────────────────────────────────────────────────────────────────*/
     public function login(Request $request)
     {
         $request->validate([
-            'login'    => 'required', // email or username
+            'email'    => 'required',
             'password' => 'required',
         ]);
 
-        $login = $request->login;
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $fieldType = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-        $user = User::where($field, $login)->where('status', 1)->first();
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 422);
+        if (Auth::guard('web')->attempt([$fieldType => $request->email, 'password' => $request->password, 'status' => 1])) {
+            $user = Auth::guard('web')->user();
+
+            // ⬇️ إنشاء توكين مع صلاحية "user"
+            $token = $user->createToken('flutter-user', ['user'])->plainTextToken;
+
+            return response()->json([
+                'status' => 'success',
+                'token'  => $token,
+                'user'   => $user,
+            ]);
         }
 
-        $token = $user->createToken('flutter')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user'  => [
-                'id'       => $user->id,
-                'name'     => $user->name,
-                'username' => $user->username,
-                'email'    => $user->email,
-                'photo'    => $user->photo ? url('uploads/'.$user->photo) : null,
-            ]
-        ]);
+        return response()->json(['status' => 'error', 'message' => 'بيانات الدخول غير صحيحة'], 401);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: logout
-    الغرض: حذف التوكن الحالي (Sanctum)
-    ───────────────────────────────────────────────────────────────────────────*/
+
+    /*───────────────────────────────────────────────────────────────────────────*/
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
         return response()->json(['message' => 'Logged out']);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: me
-    الغرض: جلب ملف المستخدم (JSON)
-    ───────────────────────────────────────────────────────────────────────────*/
+    /*───────────────────────────────────────────────────────────────────────────*/
     public function me(Request $request)
     {
         $u = $request->user();
@@ -122,24 +111,19 @@ class UserController extends Controller
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: updateProfile
-    الغرض: تحديث الاسم/البريد/الصورة/كلمة السر (Multipart مدعوم)
-    المدخلات: name,email,photo?,password?,confirm_password?
+    updateProfile: تحديث البيانات + صورة + كلمة السر (اختياري)
     ───────────────────────────────────────────────────────────────────────────*/
     public function updateProfile(Request $request)
     {
         $u = $request->user();
 
         $request->validate([
-            'name'  => 'required',
-            'email' => 'required|email|unique:users,email,'.$u->id,
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,'.$u->id,
+            'photo' => 'sometimes|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         if ($request->hasFile('photo')) {
-            $request->validate([
-                'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ]);
-
             $final = 'user_'.time().'.'.$request->photo->extension();
             if ($u->photo && file_exists(public_path('uploads/'.$u->photo))) {
                 @unlink(public_path('uploads/'.$u->photo));
@@ -150,7 +134,7 @@ class UserController extends Controller
 
         if ($request->filled('password')) {
             $request->validate([
-                'password'         => 'required',
+                'password'         => ['required', Password::min(6)],
                 'confirm_password' => 'required|same:password',
             ]);
             $u->password = Hash::make($request->password);
@@ -164,15 +148,15 @@ class UserController extends Controller
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: forgotPassword
-    الغرض: إصدار رابط إعادة تعيين كلمة المرور وإرساله بالبريد
+    forgotPassword: يولّد توكن ويرسل رابط
+    (لو عندك صفحة ويب للإعادة استخدم رابطها؛ وإلّا يمكنك تجاهل النقر والاكتفاء بالـ API)
     ───────────────────────────────────────────────────────────────────────────*/
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
         $user = User::where('email', $request->email)->first();
-        if (!$user){
+        if (!$user) {
             return response()->json(['message' => 'Email not recognized'], 404);
         }
 
@@ -180,25 +164,25 @@ class UserController extends Controller
         $user->token = $token;
         $user->save();
 
-        $link    = route('reset_password', [$token, $request->email]);
+        // عدّل هذا الرابط لواجهة الويب إن كان لديك صفحة جاهزة
+        $link    = url('reset-password/'.$token.'/'.$request->email);
         $subject = 'Reset Password';
-        $message = 'انقر على الرابط لإعادة كلمة المرور <br><a href="'.$link.'">'.$link.'</a>';
+        $message = 'انقر على الرابط لإعادة كلمة المرور:<br><a href="'.$link.'">'.$link.'</a>';
+
         Mail::to($request->email)->send(new Websitemail($subject, $message));
 
         return response()->json(['message' => 'Reset link sent']);
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: resetPassword
-    الغرض: تعيين كلمة مرور جديدة عبر token/email (JSON)
-    المدخلات: email, token, password, confirm_password
+    resetPassword: يحدّث كلمة السر عبر token/email
     ───────────────────────────────────────────────────────────────────────────*/
     public function resetPassword(Request $request)
     {
         $request->validate([
             'email'            => 'required|email',
             'token'            => 'required',
-            'password'         => 'required',
+            'password'         => ['required', Password::min(6)],
             'confirm_password' => 'required|same:password',
         ]);
 
@@ -213,8 +197,7 @@ class UserController extends Controller
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: wishlistIndex
-    الغرض: جلب قائمة المفضلة للمستخدم (مع خصائصها)
+    wishlist: عرض وحذف
     ───────────────────────────────────────────────────────────────────────────*/
     public function wishlistIndex(Request $request)
     {
@@ -222,7 +205,6 @@ class UserController extends Controller
             ->where('user_id', $request->user()->id)
             ->latest('id')->get();
 
-        // Map to property resources if exists
         $data = $items->map(function($w){
             return [
                 'id'       => $w->id,
@@ -233,11 +215,6 @@ class UserController extends Controller
         return response()->json(['wishlist' => $data]);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: wishlistDelete
-    الغرض: حذف عنصر من المفضلة (JSON)
-    المدخلات: $id (Wishlist ID)
-    ───────────────────────────────────────────────────────────────────────────*/
     public function wishlistDelete(Request $request, $id)
     {
         $own = Wishlist::where('id', $id)->where('user_id', $request->user()->id)->first();
@@ -248,8 +225,7 @@ class UserController extends Controller
     }
 
     /*───────────────────────────────────────────────────────────────────────────
-    الدالة: messages
-    الغرض: قائمة رسائل المستخدم (JSON)
+    الرسائل: إنشاء/عرض/رد/حذف
     ───────────────────────────────────────────────────────────────────────────*/
     public function messages(Request $request)
     {
@@ -257,17 +233,12 @@ class UserController extends Controller
         return response()->json(['messages' => $messages]);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: messageStore
-    الغرض: إنشاء رسالة جديدة لوكيل وإشعاره بالبريد
-    المدخلات: subject, message, agent_id
-    ───────────────────────────────────────────────────────────────────────────*/
     public function messageStore(Request $request)
     {
         $request->validate([
-            'subject'  => 'required',
-            'message'  => 'required',
-            'agent_id' => 'required',
+            'subject'  => 'required|string|max:255',
+            'message'  => 'required|string|max:5000',
+            'agent_id' => 'required|exists:agents,id',
         ]);
 
         $m = new Message();
@@ -278,23 +249,17 @@ class UserController extends Controller
         $m->save();
 
         $subject = 'New Message from Customer';
-        $body    = 'لقد تلقيت رسالة من زبون انقر على الرابط لو سمحت<br>';
+        $body    = 'لقد تلقيت رسالة من زبون، تفضّل بالدخول:<br>';
         $link    = url('agent/message/index');
         $body   .= '<a href="'.$link.'">'.$link.'</a>';
 
-        $agent = Agent::find($request->agent_id);
-        if ($agent) {
+        if ($agent = Agent::find($request->agent_id)) {
             Mail::to($agent->email)->send(new Websitemail($subject, $body));
         }
 
         return response()->json(['message' => 'Message created', 'id' => $m->id], 201);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: messageShow
-    الغرض: تفاصيل رسالة + جميع الردود (JSON)
-    المدخلات: $id
-    ───────────────────────────────────────────────────────────────────────────*/
     public function messageShow(Request $request, $id)
     {
         $m = Message::where('id', $id)->where('user_id', $request->user()->id)->first();
@@ -308,22 +273,18 @@ class UserController extends Controller
         ]);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: messageReply
-    الغرض: إضافة رد جديد على رسالة وإشعار الوكيل
-    المدخلات: reply (text), $id (message_id), agent_id (path or body)
-    ───────────────────────────────────────────────────────────────────────────*/
     public function messageReply(Request $request, $id)
     {
-        $request->validate(['reply' => 'required', 'agent_id' => 'required']);
+        $request->validate(['reply' => 'required|string|max:5000']);
 
         $m = Message::where('id', $id)->where('user_id', $request->user()->id)->first();
         if (!$m) return response()->json(['message' => 'Not found'], 404);
 
+        // خُذ agent_id من الرسالة نفسها لتجنّب التلاعب
         $r = new MessageReply();
         $r->message_id = $m->id;
         $r->user_id    = $request->user()->id;
-        $r->agent_id   = $request->agent_id;
+        $r->agent_id   = $m->agent_id;
         $r->sender     = 'Customer';
         $r->reply      = $request->reply;
         $r->save();
@@ -333,25 +294,22 @@ class UserController extends Controller
         $link    = url('agent/message/reply/'.$m->id);
         $body   .= '<a href="'.$link.'">'.$link.'</a>';
 
-        $agent = Agent::find($request->agent_id);
-        if ($agent) {
+        if ($agent = Agent::find($m->agent_id)) {
             Mail::to($agent->email)->send(new Websitemail($subject, $body));
         }
 
         return response()->json(['message' => 'Reply sent']);
     }
 
-    /*───────────────────────────────────────────────────────────────────────────
-    الدالة: messageDelete
-    الغرض: حذف رسالة مملوكة للمستخدم
-    المدخلات: $id
-    ───────────────────────────────────────────────────────────────────────────*/
     public function messageDelete(Request $request, $id)
     {
         $m = Message::where('id', $id)->where('user_id', $request->user()->id)->first();
         if (!$m) return response()->json(['message' => 'Not found'], 404);
 
+        // احذف الردود ثم الرسالة (لو ما عندك Cascade)
+        \App\Models\MessageReply::where('message_id', $m->id)->delete();
         $m->delete();
+
         return response()->json(['message' => 'تم الحذف']);
     }
 }

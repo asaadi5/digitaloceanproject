@@ -16,6 +16,11 @@
 <script src="{{ asset('dist-front/js/themeColors.js') }}"></script>
 <script src="{{ asset('dist-front/js/custom.js') }}"></script>
 <script src="{{ asset('dist-front/js/custom-switcher.js') }}"></script>
+<script src="{{ asset('dist-front/plugins/fancyuploder/jquery.ui.widget.js')}}"></script>
+<script src="{{ asset('dist-front/plugins/fancyuploder/jquery.fileupload.js')}}"></script>
+<script src="{{ asset('dist-front/plugins/fancyuploder/jquery.iframe-transport.js')}}"></script>
+<script src="{{ asset('dist-front/plugins/fancyuploder/jquery.fancy-fileupload.js')}}"></script>
+<script src="{{ asset('dist-front/plugins/fancyuploder/fancy-uploader.js')}}"></script>
 
 @if($errors->any())
     @foreach($errors->all() as $error)

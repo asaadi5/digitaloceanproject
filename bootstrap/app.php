@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'agent' => \App\Http\Middleware\Agent::class,
             'auth' => \App\Http\Middleware\User::class,
         ]);
+        $middleware->group('api', [
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

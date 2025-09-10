@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\Websitemail;
 use Illuminate\Support\Facades\Mail;
@@ -24,17 +23,16 @@ class FrontController extends Controller
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: index
     الغرض: نفس بيانات الصفحة الرئيسية ولكن كـ JSON للـ Flutter
-    المدخلات: —
-    المخرجات: JSON يحتوي السلايدر، القوائم، الإحصاءات… إلخ
     ────────────────────────────────────────────────────────────────────────────*/
     public function index()
     {
-        // Featured strip (6) — identical logic
+        // Featured strip (6)
         $properties = Property::publicVisible()->featured()->orderBy('id','asc')->take(6)->get();
 
-        // Locations (14) + Top5 — publicVisible counts
+        // Locations (14) + Top5 — نعتمد publicVisible لضمان تفعيل الوكيل
         $locations = Location::withCount(['properties' => fn ($q) => $q->publicVisible()])
             ->orderBy('properties_count', 'desc')->take(14)->get();
+
         $topLocations = Location::withCount(['properties' => fn($q) => $q->publicVisible()])
             ->orderBy('properties_count', 'desc')->take(5)->get();
 
@@ -69,10 +67,12 @@ class FrontController extends Controller
             ->orderBy('parent_id')->orderBy('id')->get();
 
         // Featured & latest sliders (12)
-        $featured_properties = Property::withBasicIncludes()->publicVisible()->featured()
+        $featured_properties = Property::withBasicIncludes()
+            ->publicVisible()->featured()
             ->withWishlistedCountFor()->latest()->take(12)->get();
 
-        $latest_properties = Property::withBasicIncludes()->publicVisible()
+        $latest_properties = Property::withBasicIncludes()
+            ->publicVisible()
             ->withWishlistedCountFor()->latest()->take(12)->get();
 
         // KPIs
@@ -86,41 +86,36 @@ class FrontController extends Controller
             ->latest('id')->take(12)
             ->get(['id','title','slug','short_description','photo','type_id','total_views','created_at']);
 
-        // Return structured JSON (use Resource for property arrays)
         return response()->json([
-            'strip_properties'   => PropertyResource::collection($properties),
-            'locations'          => $locations,
-            'top_locations'      => $topLocations,
-            'search'             => [
+            'strip_properties'    => PropertyResource::collection($properties),
+            'locations'           => $locations,
+            'top_locations'       => $topLocations,
+            'search'              => [
                 'locations' => $search_locations,
                 'types'     => $search_types,
             ],
-            'agents'             => $agents,
-            'testimonials'       => $testimonials,
-            'posts'              => $posts,
-            'counts'             => $counts,
-            'subtypes'           => $subtypes,
-            'featured_properties'=> PropertyResource::collection($featured_properties),
-            'latest_properties'  => PropertyResource::collection($latest_properties),
-            'totals'             => [
+            'agents'              => $agents,
+            'testimonials'        => $testimonials,
+            'posts'               => $posts,
+            'counts'              => $counts,
+            'subtypes'            => $subtypes,
+            'featured_properties' => PropertyResource::collection($featured_properties),
+            'latest_properties'   => PropertyResource::collection($latest_properties),
+            'totals'              => [
                 'agents'     => $agents_total,
                 'orders'     => $orders_total,
                 'properties' => $properties_total,
                 'users'      => $users_total,
             ],
-            'latest_posts'       => $latestPosts,
+            'latest_posts'        => $latestPosts,
         ]);
     }
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: blog
-    الغرض: قائمة التدوينات كـ JSON بنفس فلاتر الويب (type, q) مع pagination
-    المدخلات: Request (?type=slug, ?q=)
-    المخرجات: JSON paginator
     ────────────────────────────────────────────────────────────────────────────*/
     public function blog(Request $request)
     {
-        // Build posts query (same logic)
         $postsQuery = Post::with('type')
             ->withCount(['comments as comments_count' => fn($q) => $q->where('approved', 1)])
             ->orderByDesc('id');
@@ -136,8 +131,6 @@ class FrontController extends Controller
         }
 
         $posts = $postsQuery->paginate(9)->withQueryString();
-
-        // Include sidebar types with counts (as web does)
         $types = Type::withCount('posts')->orderByDesc('posts_count')->get(['id','name','slug']);
 
         return response()->json([
@@ -148,13 +141,9 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: post
-    الغرض: تفاصيل تدوينة + تعليقات موافَق عليها (JSON)
-    المدخلات: $slug
-    المخرجات: JSON أو 404
     ────────────────────────────────────────────────────────────────────────────*/
     public function post($slug)
     {
-        // Load post with approved comments
         $post = Post::with([
             'type',
             'comments' => fn($q) => $q->where('approved', 1)->latest()
@@ -167,7 +156,6 @@ class FrontController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
 
-        // Increment views (no behavior change)
         $post->increment('total_views');
 
         $types = Type::withCount('posts')->orderByDesc('posts_count')->get(['id','name','slug']);
@@ -180,9 +168,6 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: commentStore
-    الغرض: إضافة تعليق (موافَق فورًا كما في الويب) لكن استجابة JSON
-    المدخلات: Request (author_name, author_email, body), Post (binding)
-    المخرجات: JSON نجاح
     ────────────────────────────────────────────────────────────────────────────*/
     public function commentStore(Request $request, Post $post)
     {
@@ -204,10 +189,7 @@ class FrontController extends Controller
     }
 
     /*────────────────────────────────────────────────────────────────────────────
-    الدالة: faq
-    الغرض: إرجاع الأسئلة الشائعة كـ JSON
-    المدخلات: —
-    المخرجات: JSON
+    الدالة: faq / pricing
     ────────────────────────────────────────────────────────────────────────────*/
     public function faq()
     {
@@ -215,12 +197,6 @@ class FrontController extends Controller
         return response()->json(['faqs' => $faqs]);
     }
 
-    /*────────────────────────────────────────────────────────────────────────────
-    الدالة: pricing
-    الغرض: إرجاع الباقات كـ JSON (للاستخدام داخل Flutter)
-    المدخلات: —
-    المخرجات: JSON
-    ────────────────────────────────────────────────────────────────────────────*/
     public function pricing()
     {
         $packages = Package::orderBy('id','asc')->get();
@@ -229,9 +205,6 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: property_detail
-    الغرض: تفاصيل عقار + بيانات جانبية مطابقة (JSON)
-    المدخلات: $slug
-    المخرجات: JSON يحتوي property/flags/history/related/...
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_detail($slug)
     {
@@ -244,7 +217,7 @@ class FrontController extends Controller
             'documents:id,property_id,doc_type,issuer,doc_no,issued_at,file_path',
         ])->where('slug', $slug)->firstOrFail();
 
-        // Bump views safely (same logic)
+        // Bump views safely
         $this->bumpPropertyViews($property);
 
         // Flags
@@ -271,89 +244,82 @@ class FrontController extends Controller
             ->orderBy('amenities.name')
             ->pluck('amenities.name')->toArray();
 
-        // Related & latest by agent
+        // Related & latest by agent — نعرض فقط publicVisible
         $related = Property::with(['type:id,name,parent_id', 'location:id,name'])
+            ->publicVisible()
             ->where('id', '!=', $property->id)
-            ->where('status', 'active')
             ->when($property->purpose, fn ($q) => $q->where('purpose', $property->purpose))
             ->when($property->type_id, fn ($q) => $q->where('type_id', $property->type_id))
             ->latest('id')->take(12)->get();
 
         $agentLatest = Property::with(['type:id,name', 'location:id,name'])
+            ->publicVisible()
             ->where('agent_id', $property->agent_id)
             ->where('id', '!=', $property->id)
-            ->where('status', 'active')
             ->latest('id')->take(6)->get();
 
-        $latestProperties = Property::where('status', 'active')->latest('id')->take(7)->get();
+        $latestProperties = Property::publicVisible()->latest('id')->take(7)->get();
 
         return response()->json([
-            'property'         => new PropertyResource($property),
-            'flags'            => compact('isResi','isCom','isRecre','isLand','isRent'),
-            'price_history'    => $priceHistory,
-            'rental_rules'     => $rentalRules,
-            'amenities'        => $amenities,
-            'related'          => PropertyResource::collection($related),
-            'agent_latest'     => PropertyResource::collection($agentLatest),
-            'latest_properties'=> PropertyResource::collection($latestProperties),
+            'property'          => new PropertyResource($property),
+            'flags'             => compact('isResi','isCom','isRecre','isLand','isRent'),
+            'price_history'     => $priceHistory,
+            'rental_rules'      => $rentalRules,
+            'amenities'         => $amenities,
+            'related'           => PropertyResource::collection($related),
+            'agent_latest'      => PropertyResource::collection($agentLatest),
+            'latest_properties' => PropertyResource::collection($latestProperties),
         ]);
     }
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: property_send_message
-    الغرض: إرسال رسالة للوكيل بخصوص عقار (استجابة JSON)
-    المدخلات: Request (name,email,phone,message), $id
-    المخرجات: JSON نجاح/خطأ
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_send_message(Request $request,$id)
     {
-        $property = Property::where('id',$id)->first();
+        $request->validate([
+            'name'    => ['required','string','max:255'],
+            'email'   => ['required','email','max:255'],
+            'phone'   => ['nullable','string','max:255'],
+            'message' => ['required','string'],
+        ]);
+
+        $property = Property::find($id);
         if (!$property) {
             return response()->json(['message' => 'Property not found'], 404);
         }
 
-        // Compose email (unchanged)
         $subject = 'Property Inquiry';
-        $message = 'You have received a new inquiry for the property: ' . $property->name.'<br><br>';
-        $message .= 'Visitor Name:<br>'.$request->name.'<br><br>';
-        $message .= 'Visitor Email:<br>'.$request->email.'<br><br>';
-        $message .= 'Visitor Phone:<br>'.$request->phone.'<br><br>';
-        $message .= 'Visitor Message:<br>'.nl2br($request->message);
+        $message = 'You have received a new inquiry for the property: ' . e($property->name).'<br><br>';
+        $message .= 'Visitor Name:<br>'.e($request->name).'<br><br>';
+        $message .= 'Visitor Email:<br>'.e($request->email).'<br><br>';
+        if ($request->filled('phone')) {
+            $message .= 'Visitor Phone:<br>'.e($request->phone).'<br><br>';
+        }
+        $message .= 'Visitor Message:<br>'.nl2br(e($request->message));
 
-        $agent_email = $property->agent->email;
-        Mail::to($agent_email)->send(new Websitemail($subject, $message));
+        $agent_email = optional($property->agent)->email;
+        if ($agent_email) {
+            Mail::to($agent_email)->send(new Websitemail($subject, $message));
+        }
 
         return response()->json(['message' => 'Message sent successfully to agent']);
     }
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: locations
-    الغرض: قائمة المواقع مرتبة حسب عدد العقارات العامة (JSON + pagination)
-    المدخلات: —
-    المخرجات: JSON paginator
     ────────────────────────────────────────────────────────────────────────────*/
     public function locations()
     {
-        // Keep explicit conditions (identical to web)
-        $locations = Location::withCount(['properties' => function ($query) {
-            $query->where('status', 'Active')
-                ->whereHas('agent', function($q) {
-                    $q->whereHas('orders', function($qq) {
-                        $qq->where('currently_active', 1)
-                            ->where('status', 'Completed')
-                            ->where('expire_date', '>=', now());
-                    });
-                });
-        }])->orderBy('properties_count', 'desc')->paginate(20);
+        // نحتسب فقط العقارات العامة المرئية (active + وكيل باقة فعّالة)
+        $locations = Location::withCount(['properties' => fn($q) => $q->publicVisible()])
+            ->orderBy('properties_count', 'desc')->paginate(20);
 
         return response()->json($locations);
     }
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: location
-    الغرض: تفاصيل موقع + عقاراته العامة (JSON)
-    المدخلات: $slug
-    المخرجات: JSON أو 404
     ────────────────────────────────────────────────────────────────────────────*/
     public function location($slug)
     {
@@ -362,15 +328,8 @@ class FrontController extends Controller
             return response()->json(['message' => 'Not found'], 404);
         }
 
-        $properties = Property::where('location_id', $location->id)
-            ->where('status', 'Active')
-            ->whereHas('agent', function($query) {
-                $query->whereHas('orders', function($q) {
-                    $q->where('currently_active', 1)
-                        ->where('status', 'Completed')
-                        ->where('expire_date', '>=', now());
-                });
-            })
+        $properties = Property::publicVisible()
+            ->where('location_id', $location->id)
             ->orderBy('id', 'asc')->paginate(6);
 
         return response()->json([
@@ -381,9 +340,6 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: agents
-    الغرض: قائمة الوكلاء النشطين (JSON + pagination)
-    المدخلات: —
-    المخرجات: JSON
     ────────────────────────────────────────────────────────────────────────────*/
     public function agents()
     {
@@ -393,26 +349,16 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: agent
-    الغرض: عرض وكيل معيّن + عقاراته (مطابق لفكرة الويب لكن JSON)
-    المدخلات: $id
-    المخرجات: JSON أو 404
     ────────────────────────────────────────────────────────────────────────────*/
     public function agent($id)
     {
-        $agent = Agent::where('id', $id)->first();
+        $agent = Agent::find($id);
         if (!$agent) {
             return response()->json(['message' => 'Agent not found'], 404);
         }
 
-        $properties = Property::where('agent_id', $agent->id)
-            ->where('status', 'Active')
-            ->whereHas('agent', function($query) {
-                $query->whereHas('orders', function($q) {
-                    $q->where('currently_active', 1)
-                        ->where('status', 'Completed')
-                        ->where('expire_date', '>=', now());
-                });
-            })
+        $properties = Property::publicVisible()
+            ->where('agent_id', $agent->id)
             ->orderBy('id', 'asc')->paginate(6);
 
         return response()->json([
@@ -423,9 +369,6 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: property_search
-    الغرض: نفس بحث الويب لكن يُرجع JSON + pagination + عنوان الصفحة
-    المدخلات: Request (نفس الباراميترات)
-    المخرجات: JSON (قائمة عقارات + pageTitle + مجموعات IDs للجوانب)
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_search(Request $request)
     {
@@ -438,9 +381,7 @@ class FrontController extends Controller
 
         if ($locationSlug) {
             $locationRow = Location::select('id','name')->where('slug', $locationSlug)->first();
-            if ($locationRow) {
-                $request->merge(['location_id' => $locationRow->id]); // same behavior
-            }
+            if ($locationRow) $request->merge(['location_id' => $locationRow->id]);
         }
 
         if ($purposeSlug && !$request->filled('purpose_in')) {
@@ -476,7 +417,8 @@ class FrontController extends Controller
             return addcslashes($v, "\\%_");
         };
 
-        $query = Property::query()->where('status', 'active');
+        // نبدأ بعقارات نشِطة فقط
+        $query = Property::query()->active();
 
         $purposeIn = (array) $request->query('purpose_in', []);
         if (!empty($purposeIn)) {
@@ -536,21 +478,21 @@ class FrontController extends Controller
         if ($cityText !== '')     $query->where('address', 'like', '%'.$escapeLike($cityText).'%');
         if ($provinceText !== '') $query->where('address', 'like', '%'.$escapeLike($provinceText).'%');
 
-        if ($featuredOnly) $query->where('is_featured', 'yes');
+        if ($featuredOnly) $query->featured();
 
         // Apply exact same sort combos
         $this->applySort($query, $sort);
 
-        // Paginated result + eager 'type' (as web)
+        // Paginated result + eager 'type'
         $properties = $query->with('type')->paginate(12)->withQueryString();
 
-        // Side collections (same)
+        // Side collections
         $resiTypeIds  = $this->typeIdsFor(1);
         $commTypeIds  = $this->typeIdsFor(2);
         $recreTypeIds = $this->typeIdsFor(3);
         $landsTypeIds = $this->typeIdsFor(4);
 
-        // Page title (same priority rules)
+        // Page title
         $pageTitle = $this->buildSearchPageTitle(
             $purposeSlug, $purposeParam, $purposeIn,
             $typeSlug, $typeParam, $escapeLike,
@@ -558,7 +500,6 @@ class FrontController extends Controller
             $featuredOnly, $sort
         );
 
-        // Return paginator as Resource collection (keeps meta/links)
         return PropertyResource::collection($properties)
             ->additional([
                 'pageTitle'    => $pageTitle,
@@ -571,22 +512,14 @@ class FrontController extends Controller
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: wishlist_add
-    الغرض: إضافة لعناصر المفضلة (يتطلب auth:sanctum) — JSON
-    المدخلات: $id (property_id)
-    المخرجات: JSON نجاح/أخطاء
     ────────────────────────────────────────────────────────────────────────────*/
     public function wishlist_add($id)
     {
         $user = Auth::guard('sanctum')->user();
-        if (!$user) {
-            return response()->json(['message' => 'Unauthorized'], 401);
-        }
+        if (!$user) return response()->json(['message' => 'Unauthorized'], 401);
 
-        // Prevent duplicates
         $existing = Wishlist::where('user_id', $user->id)->where('property_id', $id)->first();
-        if ($existing) {
-            return response()->json(['message' => 'Property already in wishlist'], 422);
-        }
+        if ($existing) return response()->json(['message' => 'Property already in wishlist'], 422);
 
         Wishlist::create([
             'user_id'     => $user->id,
@@ -597,16 +530,13 @@ class FrontController extends Controller
     }
 
     /*────────────────────────────────────────────────────────────────────────────
-    الدالة: contact_submit
-    الغرض: نفسها من الويب لكنها جاهزة للـ API (هي أصلاً JSON)
-    المدخلات: Request (name,email,message)
-    المخرجات: JSON نجاح/أخطاء
+    الدالة: contact_submit / subscriber_send_email / subscriber_verify / terms / privacy
     ────────────────────────────────────────────────────────────────────────────*/
     public function contact_submit(Request $request)
     {
         $validator = \Validator::make($request->all(),[
-            'name' => ['required'],
-            'email' => ['required','email','unique:subscribers,email'],
+            'name'    => ['required'],
+            'email'   => ['required','email','unique:subscribers,email'],
             'message' => ['required'],
         ]);
 
@@ -616,21 +546,15 @@ class FrontController extends Controller
 
         $subject = 'Contact Form Message';
         $message = 'Sender Information:<br>';
-        $message .= '<b>Name:</b><br>'.$request->name.'<br><br>';
-        $message .= '<b>Email:</b><br>'.$request->email.'<br><br>';
-        $message .= '<b>Message:</b><br>'.nl2br($request->message);
+        $message .= '<b>Name:</b><br>'.e($request->name).'<br><br>';
+        $message .= '<b>Email:</b><br>'.e($request->email).'<br><br>';
+        $message .= '<b>Message:</b><br>'.nl2br(e($request->message));
 
         Mail::to($request->email)->send(new Websitemail($subject,$message));
 
         return response()->json(['code'=>1,'success_message'=>'Message is sent successfully']);
     }
 
-    /*────────────────────────────────────────────────────────────────────────────
-    الدالة: subscriber_send_email
-    الغرض: إنشاء اشتراك جديد وإرسال رابط تحقق (JSON)
-    المدخلات: Request (email)
-    المخرجات: JSON
-    ────────────────────────────────────────────────────────────────────────────*/
     public function subscriber_send_email(Request $request)
     {
         $validator = \Validator::make($request->all(),[
@@ -644,8 +568,8 @@ class FrontController extends Controller
         $token = hash('sha256', time());
 
         $obj = new Subscriber();
-        $obj->email = $request->email;
-        $obj->token = $token;
+        $obj->email  = $request->email;
+        $obj->token  = $token;
         $obj->status = 0;
         $obj->save();
 
@@ -660,18 +584,12 @@ class FrontController extends Controller
         return response()->json(['code'=>1,'success_message'=>'Please check your email to confirm subscription']);
     }
 
-    /*────────────────────────────────────────────────────────────────────────────
-    الدالة: subscriber_verify
-    الغرض: تفعيل الاشتراك عبر الرابط (JSON بدلاً من Redirect)
-    المدخلات: $email, $token
-    المخرجات: JSON نجاح/فشل
-    ────────────────────────────────────────────────────────────────────────────*/
     public function subscriber_verify($email,$token)
     {
         $subscriber_data = Subscriber::where('email',$email)->where('token',$token)->first();
 
         if($subscriber_data) {
-            $subscriber_data->token = '';
+            $subscriber_data->token  = '';
             $subscriber_data->status = 1;
             $subscriber_data->update();
 
@@ -681,12 +599,6 @@ class FrontController extends Controller
         return response()->json(['message' => 'Invalid verification link'], 404);
     }
 
-    /*────────────────────────────────────────────────────────────────────────────
-    الدالة: terms / privacy
-    الغرض: إرجاع محتوى الصفحات الثابتة كـ JSON
-    المدخلات: —
-    المخرجات: JSON
-    ────────────────────────────────────────────────────────────────────────────*/
     public function terms()
     {
         $terms_data = Page::where('id',1)->first();
@@ -699,7 +611,7 @@ class FrontController extends Controller
         return response()->json(['privacy' => $privacy_data]);
     }
 
-    /*──────────────────────── Helpers (نفسها بحرفيتها) ───────────────────────*/
+    /*──────────────────────── Helpers ───────────────────────*/
 
     private const SORT_MAP = [
         'newest'     => [['id', 'desc']],
@@ -836,10 +748,10 @@ class FrontController extends Controller
             }
         }
 
-        if ($typeName)               return $purposeText ? ($typeName.' '.$purposeText) : $typeName;
-        if ($categoryName)           return $purposeText ? ($categoryName.' '.$purposeText) : $categoryName;
-        if ($featuredOnly)           return 'العقارات المميّزة';
-        if ($purposeText)            return 'عقارات '.$purposeText;
+        if ($typeName)                 return $purposeText ? ($typeName.' '.$purposeText) : $typeName;
+        if ($categoryName)             return $purposeText ? ($categoryName.' '.$purposeText) : $categoryName;
+        if ($featuredOnly)             return 'العقارات المميّزة';
+        if ($purposeText)              return 'عقارات '.$purposeText;
         if (($sort ?? '') === 'newest') return 'أحدث العقارات';
         return 'نتائج البحث';
     }

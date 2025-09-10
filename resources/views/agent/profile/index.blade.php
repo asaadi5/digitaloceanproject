@@ -1,164 +1,194 @@
 @extends('front.layouts.master')
 
 @section('main_content')
-<div class="page-top" style="background-image: url({{ asset('uploads/'.$global_setting->banner) }})">
-    <div class="bg"></div>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-12">
-                <h2>Agent Profile</h2>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="page-content user-panel">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3 col-md-12">
-                <div class="card">
-                    @include('agent.sidebar.index')
+    <!--Breadcrumb-->
+    <section>
+        <div class="bannerimg cover-image bg-background3" data-bs-image-src="../assets/images/banners/banner2.jpg">
+            <div class="header-text mb-0">
+                <div class="container">
+                    <div class="text-center text-white">
+                        <h1 class="">لوحة التحكم الخاصة بي</h1>
+                        <ol class="breadcrumb text-center">
+                            <li class="breadcrumb-item"><a href="javascript:void(0);">الرئيسية</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">تعديل الملف الشخصي</li>
+                        </ol>
+                    </div>
                 </div>
             </div>
-            <div class="col-lg-9 col-md-12">
-                <form action="{{ route('agent_profile_submit') }}" method="post" enctype="multipart/form-data">
-                    @csrf
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="">Existing Photo</label>
-                            <div class="form-group">
-                                @if(Auth::guard('agent')->user()->photo == null)
-                                <img src="{{ asset('uploads/default.png') }}" alt="" class="user-photo">
-                                @else
-                                <img src="{{ asset('uploads/'.Auth::guard('agent')->user()->photo) }}" alt="" class="user-photo">
-                                @endif
-                            </div>
+        </div>
+    </section>
+    <!--/Breadcrumb-->
+
+    @php
+        $agent = $agent ?? Auth::guard('agent')->user();
+    @endphp
+
+        <!--Edit-profile-->
+    <section class="sptb">
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+
+                <!-- الشريط الجانبي  -->
+                <div class="col-xl-2 col-lg-3 col-md-12">
+                    @include('agent.sidebar.index')
+                </div>
+                <!-- /الشريط الجانبي  -->
+
+                <!-- المحتوى  -->
+                <div class="col-xl-10 col-lg-9 col-md-12">
+                    <div class="card mb-0">
+                        <div class="card-header">
+                            <h3 class="card-title">تعديل الملف الشخصي</h3>
                         </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="">Change Photo</label>
-                            <div class="form-group">
-                                <input type="file" name="photo">
+
+                        <form action="{{ route('agent_profile_submit') }}" method="post" enctype="multipart/form-data">
+                            @csrf
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- الصورة -->
+                                    <div class="col-xl-4 col-lg-4 col-md-3">
+                                        <div class="form-group">
+                                            <label class="form-label d-block">الصورة الحالية</label>
+                                            <img src="{{ $agent->photo ? asset('uploads/'.$agent->photo) : asset('assets/images/faces/male/25.jpg') }}"
+                                                 alt="الصورة الحالية" class="brround"
+                                                 style="width:95px;height:95px;object-fit:cover;">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">تغيير الصورة</label>
+                                            <input type="file" class="form-control example-file-input-custom" name="photo">
+                                        </div>
+                                    </div>
+
+                                    <!-- الحقول -->
+                                    <div class="col-md-9">
+                                        <div class="row">
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">الاسم *</label>
+                                                    <input type="text" class="form-control" name="name"
+                                                           value="{{ old('name', $agent->name) }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">البريد الإلكتروني *</label>
+                                                    <input type="email" class="form-control" name="email"
+                                                           value="{{ old('email', $agent->email) }}" required>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">الشركة *</label>
+                                                    <input type="text" class="form-control" name="company"
+                                                           value="{{ old('company', $agent->company) }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">المسمى الوظيفي</label>
+                                                    <input type="text" class="form-control" name="designation"
+                                                           value="{{ old('designation', $agent->designation) }}">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">الهاتف</label>
+                                                    <input type="text" class="form-control" name="phone"
+                                                           value="{{ old('phone', $agent->phone) }}" placeholder="مثال: 05xxxxxxxx">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">العنوان</label>
+                                                    <input type="text" class="form-control" name="address"
+                                                           value="{{ old('address', $agent->address) }}" placeholder="العنوان بالتفصيل">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">المدينة</label>
+                                                    <input type="text" class="form-control" name="city"
+                                                           value="{{ old('city', $agent->city) }}" placeholder="المدينة">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">فيسبوك</label>
+                                                    <input type="text" class="form-control" name="facebook"
+                                                           value="{{ old('facebook', $agent->facebook) }}" placeholder="رابط حساب فيسبوك">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">تلغرام</label>
+                                                    <input type="text" class="form-control" name="telegram"
+                                                           value="{{ old('telegram', $agent->telegram) }}" placeholder="رابط أو معرف تلغرام">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">تويتر</label>
+                                                    <input type="text" class="form-control" name="twitter"
+                                                           value="{{ old('twitter', $agent->twitter) }}" placeholder="رابط تويتر (X)">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">إنستغرام</label>
+                                                    <input type="text" class="form-control" name="instagram"
+                                                           value="{{ old('instagram', $agent->instagram) }}" placeholder="رابط إنستغرام">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">الموقع الإلكتروني</label>
+                                                    <input type="text" class="form-control" name="website"
+                                                           value="{{ old('website', $agent->website) }}" placeholder="https://example.com">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">كلمة المرور</label>
+                                                    <input type="password" class="form-control" name="password" placeholder="(اختياري) أدخل كلمة مرور جديدة">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm-6 col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">تأكيد كلمة المرور</label>
+                                                    <input type="password" class="form-control" name="confirm_password" placeholder="أعد إدخال كلمة المرور">
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">نبذة تعريفية</label>
+                                                    <textarea rows="5" class="form-control" name="biography" placeholder="اكتب نبذة مختصرة عنك">{{ old('biography', $agent->biography) }}</textarea>
+                                                </div>
+                                            </div>
+
+                                        </div> <!-- /row inner -->
+                                    </div>
+                                </div> <!-- /row -->
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Name *</label>
-                            <div class="form-group">
-                                <input type="text" name="name" class="form-control" value="{{ Auth::guard('agent')->user()->name }}">
+
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">تحديث البيانات</button>
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Email *</label>
-                            <div class="form-group">
-                                <input type="text" name="email" class="form-control" value="{{ Auth::guard('agent')->user()->email }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Company *</label>
-                            <div class="form-group">
-                                <input type="text" name="company" class="form-control" value="{{ Auth::guard('agent')->user()->company }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Designation *</label>
-                            <div class="form-group">
-                                <input type="text" name="designation" class="form-control" value="{{ Auth::guard('agent')->user()->designation }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Phone</label>
-                            <div class="form-group">
-                                <input type="text" name="phone" class="form-control" value="{{ Auth::guard('agent')->user()->phone }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Address</label>
-                            <div class="form-group">
-                                <input type="text" name="address" class="form-control" value="{{ Auth::guard('agent')->user()->address }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Country</label>
-                            <div class="form-group">
-                                <input type="text" name="country" class="form-control" value="{{ Auth::guard('agent')->user()->country }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">State</label>
-                            <div class="form-group">
-                                <input type="text" name="state" class="form-control" value="{{ Auth::guard('agent')->user()->state }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">City</label>
-                            <div class="form-group">
-                                <input type="text" name="city" class="form-control" value="{{ Auth::guard('agent')->user()->city }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Zip</label>
-                            <div class="form-group">
-                                <input type="text" name="zip" class="form-control" value="{{ Auth::guard('agent')->user()->zip }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Facebook</label>
-                            <div class="form-group">
-                                <input type="text" name="facebook" class="form-control" value="{{ Auth::guard('agent')->user()->facebook }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Twitter</label>
-                            <div class="form-group">
-                                <input type="text" name="twitter" class="form-control" value="{{ Auth::guard('agent')->user()->twitter }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Linkedin</label>
-                            <div class="form-group">
-                                <input type="text" name="linkedin" class="form-control" value="{{ Auth::guard('agent')->user()->linkedin }}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Instagram</label>
-                            <div class="form-group">
-                                <input type="text" name="instagram" class="form-control" value="{{ Auth::guard('agent')->user()->instagram }}">
-                            </div>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="">Website</label>
-                            <div class="form-group">
-                                <input type="text" name="website" class="form-control" value="{{ Auth::guard('agent')->user()->website }}">
-                            </div>
-                        </div>
+                        </form>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="">Password</label>
-                            <div class="form-group">
-                                <input type="password" name="password" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="">Confirm Password</label>
-                            <div class="form-group">
-                                <input type="password" name="confirm_password" class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label for="">Biography</label>
-                            <div class="form-group">
-                                <textarea name="biography" class="form-control h-300" rows="5">{{ Auth::guard('agent')->user()->biography }}</textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <input type="submit" class="btn btn-primary" value="Update">
-                            </div>
-                        </div>
-                    </div>
-                </form>
+
+                </div>
+                <!-- /المحتوى -->
+
             </div>
         </div>
-    </div>
-</div>
+    </section>
+    <!--/Edit-profile-->
 @endsection

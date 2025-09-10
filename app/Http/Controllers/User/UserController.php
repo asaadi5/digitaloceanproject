@@ -13,49 +13,48 @@ class UserController extends Controller
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: dashboard
     الغرض: إظهار لوحة المستخدم مع إحصاءات الرسائل والمفضلة
-    المدخلات: —
-    المخرجات: View 'user.dashboard.index'
     ───────────────────────────────────────────────────────────────────────────*/
     public function dashboard()
     {
-        $uid = Auth::guard('web')->user()->id; // reuse user id
-        $total_messages = Message::where('user_id', $uid)->count();
-        $total_wishlist_items = Wishlist::where('user_id', $uid)->count();
+        $uid  = Auth::id();
+        $user = Auth::user();
 
-        return view('user.dashboard.index', compact('total_messages', 'total_wishlist_items'));
+        $counts = [
+            'messages' => Message::where('user_id', $uid)->count(),
+            'wishlist' => Wishlist::where('user_id', $uid)->count(),
+        ];
+
+        return view('user.dashboard.index', compact('counts','user'))
+            ->with('activeTab','profile');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: registration
     الغرض: عرض صفحة تسجيل مستخدم جديد
-    المدخلات: —
-    المخرجات: View 'user.auth.registration'
     ───────────────────────────────────────────────────────────────────────────*/
     public function registration()
     {
+        if (Auth::guard('web')->check())   return redirect()->route('dashboard');
+        if (Auth::guard('agent')->check()) return redirect()->route('agent_dashboard');
         return view('user.auth.registration');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: registration_submit
     الغرض: التحقق من التسجيل وإنشاء مستخدم وإرسال رابط التحقق
-    المدخلات: Request(name,username,email,password,confirm_password)
-    المخرجات: Redirect back برسالة نجاح/خطأ
     ───────────────────────────────────────────────────────────────────────────*/
     public function registration_submit(Request $request)
     {
         $request->validate([
-            'name'            => 'required|string|max:255',
-            'username'        => 'required|string|max:255|unique:users,username',
-            'email'           => 'required|max:255|email|unique:users,email',
-            'password'        => 'required',
-            'confirm_password'=> 'required|same:password',
+            'name'             => 'required|string|max:255',
+            'username'         => 'required|string|max:255|unique:users,username',
+            'email'            => 'required|max:255|email|unique:users,email',
+            'password'         => 'required',
+            'confirm_password' => 'required|same:password',
         ]);
 
-        // Create verification token
         $token = hash('sha256', time());
 
-        // Create user (status stays default until verification)
         $user = new User();
         $user->name     = $request->name;
         $user->username = $request->username;
@@ -64,21 +63,18 @@ class UserController extends Controller
         $user->token    = $token;
         $user->save();
 
-        // Send verification email
         $link    = url('registration-verify/'.$token.'/'.$request->email);
         $subject = 'Registration Verification';
-        $message = 'انقر على الرابط لإعادة كلمة السر <br><a href="' . $link . '">' . $link . '</a>';
+        $message = 'انقر على الرابط لتفعيل حسابك: <br><a href="' . $link . '">' . $link . '</a>';
 
         Mail::to($request->email)->send(new Websitemail($subject, $message));
 
-        return back()->with('success', 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني للتحقق من حسابك.');
+        return back()->with('success', 'تم التسجيل بنجاح. تحقق من بريدك الإلكتروني لتفعيل حسابك.');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: registration_verify
     الغرض: تفعيل الحساب بواسطة رابط التحقق
-    المدخلات: $token, $email
-    المخرجات: Redirect إلى login برسالة مناسبة
     ───────────────────────────────────────────────────────────────────────────*/
     public function registration_verify($token, $email)
     {
@@ -87,10 +83,9 @@ class UserController extends Controller
             return redirect()->route('login')->with('error', 'بريد إلكتروني أو رمز غير صالح');
         }
 
-        // Activate account
         $user->token  = '';
         $user->status = 1;
-        $user->update();
+        $user->save();
 
         return redirect()->route('login')->with('success', 'تم التحقق من حسابك. يمكنك الآن تسجيل الدخول.');
     }
@@ -101,14 +96,14 @@ class UserController extends Controller
     ───────────────────────────────────────────────────────────────────────────*/
     public function login()
     {
+        if (Auth::guard('web')->check())   return redirect()->route('dashboard');
+        if (Auth::guard('agent')->check()) return redirect()->route('agent_dashboard');
         return view('user.auth.login');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: login_submit
     الغرض: محاولة تسجيل الدخول (بالبريد أو اليوزرنيم) للمستخدم النشط
-    المدخلات: Request(email|username,password)
-    المخرجات: Redirect إلى dashboard أو back بخطأ
     ───────────────────────────────────────────────────────────────────────────*/
     public function login_submit(Request $request)
     {
@@ -123,10 +118,9 @@ class UserController extends Controller
         $credentials = [
             $fieldType => $login_input,
             'password' => $request->password,
-            'status'   => 1, // must be verified/active
+            'status'   => 1,
         ];
 
-        // Attempt login with session guard
         if (Auth::guard('web')->attempt($credentials)) {
             return redirect()->route('dashboard')->with('success', 'تم تسجيل الدخول بنجاح');
         }
@@ -156,8 +150,6 @@ class UserController extends Controller
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: forget_password_submit
     الغرض: إرسال رابط إعادة تعيين كلمة المرور إلى البريد
-    المدخلات: Request(email)
-    المخرجات: Redirect back برسالة نجاح/خطأ
     ───────────────────────────────────────────────────────────────────────────*/
     public function forget_password_submit(Request $request)
     {
@@ -165,17 +157,16 @@ class UserController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (!$user){
-            return back()->with('error', 'لم يتم التعرف على البريد الإلكتروني ');
+            return back()->with('error', 'لم يتم التعرف على البريد الإلكتروني');
         }
 
-        // Issue reset token
-        $token      = hash('sha256', time());
+        $token       = hash('sha256', time());
         $user->token = $token;
-        $user->update();
+        $user->save();
 
         $link    = route('reset_password', [$token, $request->email]);
         $subject = 'Reset Password';
-        $message = 'انقر على الرابط لإعادة كلمة المرور <br><a href="'.$link.'">'.$link.'</a>';
+        $message = 'انقر على الرابط لإعادة تعيين كلمة المرور: <br><a href="'.$link.'">'.$link.'</a>';
 
         Mail::to($request->email)->send(new Websitemail($subject,$message));
 
@@ -185,8 +176,6 @@ class UserController extends Controller
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: reset_password
     الغرض: عرض صفحة تعيين كلمة مرور جديدة بعد التحقق من الرموز
-    المدخلات: $token, $email
-    المخرجات: View reset أو Redirect بخطأ
     ───────────────────────────────────────────────────────────────────────────*/
     public function reset_password($token, $email)
     {
@@ -200,8 +189,6 @@ class UserController extends Controller
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: reset_password_submit
     الغرض: حفظ كلمة المرور الجديدة وتفريغ التوكن
-    المدخلات: Request(password,confirm_password), $token, $email
-    المخرجات: Redirect إلى login مع نجاح
     ───────────────────────────────────────────────────────────────────────────*/
     public function reset_password_submit(Request $request, $token, $email)
     {
@@ -215,28 +202,35 @@ class UserController extends Controller
             return redirect()->route('login')->with('error', 'Invalid token or email');
         }
 
-        // Update password and clear token
         $user->password = Hash::make($request->password);
         $user->token    = '';
-        $user->update();
+        $user->save();
 
         return redirect()->route('login')->with('success', 'تم إعادة تعيين كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول.');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: profile
-    الغرض: عرض صفحة الملف الشخصي
+    الغرض: عرض صفحة الملف الشخصي (أو التعديل عند ?edit=1)
     ───────────────────────────────────────────────────────────────────────────*/
-    public function profile()
+    public function profile(Request $request)
     {
-        return view('user.profile.index');
+        $uid = Auth::id();
+        $counts = [
+            'messages' => Message::where('user_id',$uid)->count(),
+            'wishlist' => Wishlist::where('user_id',$uid)->count(),
+        ];
+
+        if ($request->boolean('edit')) {
+            return view('user.profile.edit', compact('counts'))->with('activeTab','profile_edit');
+        }
+
+        return view('user.profile.index', compact('counts'))->with('activeTab','profile');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: profile_submit
     الغرض: تحديث بيانات المستخدم (اسم/بريد/صورة/كلمة مرور)
-    المدخلات: Request(name,email,photo?,password?,confirm_password?)
-    المخرجات: Redirect back برسالة نجاح
     ───────────────────────────────────────────────────────────────────────────*/
     public function profile_submit(Request $request)
     {
@@ -244,29 +238,31 @@ class UserController extends Controller
         $user = User::findOrFail($uid);
 
         $request->validate([
-            'name'  => 'required',
-            'email' => 'required|email|unique:users,email,'.$uid,
+            'name'     => 'required|string|max:255',
+            'email'    => 'required|email|max:255|unique:users,email,'.$uid,
+            'username' => 'nullable|string|max:255|unique:users,username,'.$uid,
+            'phone'    => 'nullable|string|max:255',
+            'city'     => 'nullable|string|max:255',
+            'address'  => 'nullable|string|max:255',
+            'photo'    => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
-        // Handle photo (optional)
+        // Photo (optional)
         if ($request->hasFile('photo')) {
-            $request->validate([
-                'photo' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ]);
-
             $final_name = 'user_'.time().'.'.$request->photo->extension();
 
-            // Delete old photo if exists (safe)
-            if ($user->photo && file_exists(public_path('uploads/'.$user->photo))) {
-                @unlink(public_path('uploads/'.$user->photo));
+            $uploadDir = public_path('uploads');
+            if (!is_dir($uploadDir)) @mkdir($uploadDir, 0775, true);
+
+            if ($user->photo && file_exists($uploadDir.'/'.$user->photo)) {
+                @unlink($uploadDir.'/'.$user->photo);
             }
 
-            // Move uploaded file to public/uploads
-            $request->photo->move(public_path('uploads'), $final_name);
+            $request->photo->move($uploadDir, $final_name);
             $user->photo = $final_name;
         }
 
-        // Handle password (optional)
+        // Password (optional)
         if ($request->filled('password')) {
             $request->validate([
                 'password'         => 'required',
@@ -275,11 +271,15 @@ class UserController extends Controller
             $user->password = Hash::make($request->password);
         }
 
-        $user->name  = $request->name;
-        $user->email = $request->email;
+        $user->name     = $request->name;
+        $user->email    = $request->email;
+        $user->username = $request->username ?: $user->username;
+        $user->phone    = $request->phone;
+        $user->city     = $request->city;
+        $user->address  = $request->address;
         $user->save();
 
-        return back()->with('success', 'Profile updated successfully');
+        return back()->with('success', 'تم تحديث الملف الشخصي بنجاح');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
@@ -288,20 +288,34 @@ class UserController extends Controller
     ───────────────────────────────────────────────────────────────────────────*/
     public function wishlist()
     {
-        $wishlists = Wishlist::where('user_id', Auth::guard('web')->user()->id)->get();
-        return view('user.wishlist.index', compact('wishlists'));
+        $uid = Auth::id();
+
+        $wishlists = Wishlist::with([
+            'property:id,name,slug,price,bedroom,bathroom,size,location_id,type_id,status',
+            'property.location:id,name',
+            'property.type:id,name',
+        ])->where('user_id', $uid)->get();
+
+        $counts = [
+            'messages' => Message::where('user_id',$uid)->count(),
+            'wishlist' => $wishlists->count(),
+        ];
+
+        return view('user.wishlist.index', compact('wishlists','counts'))->with('activeTab','wishlist');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: wishlist_delete
-    الغرض: حذف عنصر من المفضلة
-    المدخلات: $id (Wishlist ID)
+    الغرض: حذف عنصر من المفضلة (مقيد بالمستخدم الحالي)
     ───────────────────────────────────────────────────────────────────────────*/
     public function wishlist_delete($id)
     {
-        Wishlist::where('id', $id)->delete();
+        $uid = Auth::id();
+        Wishlist::where('id', $id)->where('user_id', $uid)->delete();
         return back()->with('success', 'Wishlist item deleted successfully');
     }
+
+    /* ===================== رسائل المستخدم ===================== */
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: message
@@ -309,8 +323,19 @@ class UserController extends Controller
     ───────────────────────────────────────────────────────────────────────────*/
     public function message()
     {
-        $messages = Message::where('user_id', Auth::guard('web')->user()->id)->get();
-        return view('user.message.index', compact('messages'));
+        $uid = Auth::id();
+
+        $messages = Message::with('agent:id,name,email,photo')
+            ->where('user_id', $uid)
+            ->latest('id')
+            ->get();
+
+        $counts = [
+            'messages' => $messages->count(),
+            'wishlist' => Wishlist::where('user_id', $uid)->count(),
+        ];
+
+        return view('user.message.index', compact('messages','counts'))->with('activeTab','messages');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
@@ -319,39 +344,42 @@ class UserController extends Controller
     ───────────────────────────────────────────────────────────────────────────*/
     public function message_create()
     {
-        $agents = Agent::where('status', 1)->get();
-        return view('user.message.create', compact('agents'));
+        $uid = Auth::id();
+
+        $agents = Agent::where('status', 1)->orderBy('name')->get();
+
+        $counts = [
+            'messages' => Message::where('user_id', $uid)->count(),
+            'wishlist' => Wishlist::where('user_id', $uid)->count(),
+        ];
+
+        return view('user.message.create', compact('agents','counts'))->with('activeTab','messages');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: message_store
-    الغرض: حفظ رسالة جديدة وإعلام الوكيل بالبريد
-    المدخلات: Request(subject,message,agent_id)
-    المخرجات: Redirect route('message') مع نجاح
+    الغرض: تخزين رسالة جديدة + إرسال إشعار للوكيل
     ───────────────────────────────────────────────────────────────────────────*/
     public function message_store(Request $request)
     {
         $request->validate([
-            'subject'  => 'required',
-            'message'  => 'required',
-            'agent_id' => 'required',
+            'agent_id' => 'required|exists:agents,id',
+            'subject'  => 'required|string|max:255',
+            'message'  => 'required|string',
         ]);
 
-        $message = new Message();
-        $message->user_id  = Auth::guard('web')->user()->id;
-        $message->agent_id = $request->agent_id;
-        $message->subject  = $request->subject;
-        $message->message  = $request->message;
-        $message->save();
+        $msg = new Message();
+        $msg->user_id  = Auth::id();
+        $msg->agent_id = $request->agent_id;
+        $msg->subject  = $request->subject;
+        $msg->message  = $request->message;
+        $msg->save();
 
-        // Notify agent by email
-        $subject = 'New Message from Customer';
-        $body    = 'You have received a new message from customer. Please click on the following link:<br>';
-        $link    = url('agent/message/index');
-        $body   .= '<a href="'.$link.'">'.$link.'</a>';
-
-        $agent = Agent::where('id', $request->agent_id)->first();
-        if ($agent) {
+        if ($agent = Agent::find($request->agent_id)) {
+            $subject = 'New Message from Customer';
+            $body    = 'You have received a new message from customer. Please click on the following link:<br>';
+            $link    = url('agent/message/index');
+            $body   .= '<a href="'.$link.'">'.$link.'</a>';
             Mail::to($agent->email)->send(new Websitemail($subject, $body));
         }
 
@@ -360,41 +388,49 @@ class UserController extends Controller
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: message_reply
-    الغرض: عرض صفحة الردود لرسالة معينة
-    المدخلات: $id (Message ID)
+    الغرض: عرض صفحة محادثة رسالة مع الوكيل
     ───────────────────────────────────────────────────────────────────────────*/
     public function message_reply($id)
     {
-        $message = Message::where('id', $id)->first();
-        $replies = MessageReply::where('message_id', $id)->get();
-        return view('user.message.reply', compact('message', 'replies'));
+        $uid = Auth::id();
+
+        $message = Message::with(['user:id,name,photo','agent:id,name,photo,email'])
+            ->where('id', $id)->where('user_id', $uid)->firstOrFail();
+
+        $replies = MessageReply::with(['user:id,name,photo','agent:id,name,photo'])
+            ->where('message_id', $id)
+            ->orderBy('id')
+            ->get();
+
+        $counts = [
+            'messages' => Message::where('user_id', $uid)->count(),
+            'wishlist' => Wishlist::where('user_id', $uid)->count(),
+        ];
+
+        return view('user.message.reply', compact('message','replies','counts'))->with('activeTab','messages');
     }
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: message_reply_submit
-    الغرض: إرسال رد من المستخدم وإعلام الوكيل بالبريد
-    المدخلات: Request(reply), $m_id (Message ID), $a_id (Agent ID)
+    الغرض: إرسال رد من المستخدم + إشعار بريد للوكيل
     ───────────────────────────────────────────────────────────────────────────*/
     public function message_reply_submit(Request $request, $m_id, $a_id)
     {
-        $request->validate(['reply' => 'required']);
+        $request->validate(['reply' => 'required|string']);
 
         $reply = new MessageReply();
         $reply->message_id = $m_id;
-        $reply->user_id    = Auth::guard('web')->user()->id;
+        $reply->user_id    = Auth::id();
         $reply->agent_id   = $a_id;
         $reply->sender     = 'Customer';
         $reply->reply      = $request->reply;
         $reply->save();
 
-        // Notify agent
-        $subject = 'New Reply from Customer';
-        $body    = 'You have received a new reply from customer. Please click on the following link:<br>';
-        $link    = url('agent/message/reply/'.$m_id);
-        $body   .= '<a href="'.$link.'">'.$link.'</a>';
-
-        $agent = Agent::where('id', $a_id)->first();
-        if ($agent) {
+        if ($agent = Agent::find($a_id)) {
+            $subject = 'New Reply from Customer';
+            $body    = 'You have received a new reply from customer. Please click on the following link:<br>';
+            $link    = url('agent/message/reply/'.$m_id);
+            $body   .= '<a href="'.$link.'">'.$link.'</a>';
             Mail::to($agent->email)->send(new Websitemail($subject, $body));
         }
 
@@ -403,12 +439,34 @@ class UserController extends Controller
 
     /*───────────────────────────────────────────────────────────────────────────
     الدالة: message_delete
-    الغرض: حذف رسالة للمستخدم
-    المدخلات: $id (Message ID)
+    الغرض: حذف رسالة يملكها المستخدم الحالي
     ───────────────────────────────────────────────────────────────────────────*/
     public function message_delete($id)
     {
-        Message::where('id', $id)->delete();
+        $uid = Auth::id();
+        Message::where('id', $id)->where('user_id', $uid)->delete();
         return back()->with('success', 'Message deleted successfully');
+    }
+
+    /*───────────────────────────────────────────────────────────────────────────
+    الدالة: toggle
+    الغرض: تبديل حالة عنصر بالمفضلة عبر AJAX (إضافة/حذف)
+    ───────────────────────────────────────────────────────────────────────────*/
+    public function toggle(Request $request)
+    {
+        $uid = Auth::id();
+        $pid = (int) $request->input('property_id');
+
+        $row = Wishlist::where('user_id',$uid)->where('property_id',$pid)->first();
+
+        if ($row) {
+            $row->delete();
+            \Cache::forget("wishids:{$uid}");
+            return response()->json(['added' => false]);
+        } else {
+            Wishlist::create(['user_id'=>$uid,'property_id'=>$pid]);
+            \Cache::forget("wishids:{$uid}");
+            return response()->json(['added' => true]);
+        }
     }
 }
