@@ -37,7 +37,7 @@ class UserController extends Controller
         $user->save();
 
         // استخدم مسار الـ API المعرّف لديك: /api/v1/auth/verify/{token}/{email}
-        $link    = url('api/v1/auth/verify/'.$token.'/'.$request->email); // أو route('api.v1.auth.verify', [$token,$request->email])
+        $link    = url('registration-verify/'.$token.'/'.$request->email); // أو route('api.v1.auth.verify', [$token,$request->email])
         $subject = 'Registration Verification';
         $message = 'انقر على الرابط لتفعيل حسابك: <br><a href="' . $link . '">' . $link . '</a>';
 

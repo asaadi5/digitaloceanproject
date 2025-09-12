@@ -208,6 +208,7 @@ class FrontController extends Controller
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_detail($slug)
     {
+        // نفس علاقات الويب
         $property = Property::with([
             'agent:id,name,email,phone,city,address,photo',
             'location:id,name,slug',
@@ -217,59 +218,95 @@ class FrontController extends Controller
             'documents:id,property_id,doc_type,issuer,doc_no,issued_at,file_path',
         ])->where('slug', $slug)->firstOrFail();
 
-        // Bump views safely
+        // bump views (كما في الويب)
         $this->bumpPropertyViews($property);
 
-        // Flags
-        $type       = optional($property->type);
-        $parentId   = (int) ($type->parent_id ?? 0);
-        $isResi     = ($parentId === 1);
-        $isCom      = ($parentId === 2);
-        $isRecre    = ($parentId === 3);
-        $isLand     = ($parentId === 4);
-        $isRent     = Str::lower((string) $property->purpose) === 'rent';
+        // أعلام النوع/الغرض (كما في الويب)
+        $type     = optional($property->type);
+        $parentId = (int) ($type->parent_id ?? 0);
+        $isResi   = ($parentId === 1);
+        $isCom    = ($parentId === 2);
+        $isRecre  = ($parentId === 3);
+        $isLand   = ($parentId === 4);
+        $isRent   = \Illuminate\Support\Str::lower((string) $property->purpose) === 'rent';
 
-        // Extra data
-        $priceHistory = DB::table('property_price_history')
+        // History & rental rules (مطابق للويب)
+        $priceHistory = \DB::table('property_price_history')
             ->where('property_id', $property->id)
-            ->orderByDesc('effective_from')->get();
+            ->orderByDesc('effective_from')
+            ->get();
 
-        $rentalRules = DB::table('property_rental_rules')
+        $rentalRules = \DB::table('property_rental_rules')
             ->where('property_id', $property->id)
-            ->orderBy('id')->get();
+            ->orderBy('id')
+            ->get();
 
-        $amenities = DB::table('amenity_property')
+        // Amenities (مطابق للويب)
+        $amenities = \DB::table('amenity_property')
             ->join('amenities', 'amenities.id', '=', 'amenity_property.amenity_id')
             ->where('amenity_property.property_id', $property->id)
             ->orderBy('amenities.name')
-            ->pluck('amenities.name')->toArray();
+            ->pluck('amenities.name')
+            ->toArray();
 
-        // Related & latest by agent — نعرض فقط publicVisible
+        // Related (مثل الويب: status = active)
         $related = Property::with(['type:id,name,parent_id', 'location:id,name'])
-            ->publicVisible()
             ->where('id', '!=', $property->id)
+            ->where('status', 'active')
             ->when($property->purpose, fn ($q) => $q->where('purpose', $property->purpose))
             ->when($property->type_id, fn ($q) => $q->where('type_id', $property->type_id))
             ->latest('id')->take(12)->get();
 
+        // Agent latest (مثل الويب: status = active)
         $agentLatest = Property::with(['type:id,name', 'location:id,name'])
-            ->publicVisible()
             ->where('agent_id', $property->agent_id)
             ->where('id', '!=', $property->id)
+            ->where('status', 'active')
             ->latest('id')->take(6)->get();
 
-        $latestProperties = Property::publicVisible()->latest('id')->take(7)->get();
+        // Latest properties (مثل الويب تمامًا: active + 7 عناصر)
+        $latestProperties = Property::where('status', 'active')
+            ->latest('id')->take(7)->get();
+
+        // 🔎 الخرائط: Flutter-friendly (lat/lng + maps_url)
+        $mapInfo = $this->parseMapIframe($property->map);
 
         return response()->json([
-            'property'          => new PropertyResource($property),
+            'property'          => new \App\Http\Resources\PropertyResource($property),
             'flags'             => compact('isResi','isCom','isRecre','isLand','isRent'),
             'price_history'     => $priceHistory,
             'rental_rules'      => $rentalRules,
             'amenities'         => $amenities,
-            'related'           => PropertyResource::collection($related),
-            'agent_latest'      => PropertyResource::collection($agentLatest),
-            'latest_properties' => PropertyResource::collection($latestProperties),
+            'related'           => \App\Http\Resources\PropertyResource::collection($related),
+            'agent_latest'      => \App\Http\Resources\PropertyResource::collection($agentLatest),
+            'latest_properties' => \App\Http\Resources\PropertyResource::collection($latestProperties),
+            'map'               => $mapInfo, // 👈 نفس الترتيب اللي بدك ياه للفلاتر
         ]);
+    }
+    private function parseMapIframe(?string $iframeHtml): array
+    {
+        $lat = null; $lng = null; $src = null;
+
+        if ($iframeHtml) {
+            // استخرج src من iframe
+            if (preg_match('~src=["\']([^"\']+)["\']~i', $iframeHtml, $m)) {
+                $src = html_entity_decode(str_replace(['\"','\\/'], ['"','/'], $m[1]), ENT_QUOTES);
+            }
+            // استخرج lng/lat من الرابط
+            if ($src && preg_match('~!2d([0-9.\-]+)!3d([0-9.\-]+)~', $src, $mm)) {
+                $lng = $mm[1];
+                $lat = $mm[2];
+            }
+        }
+
+        // خليه يرجع lat/lng + رابط جاهز لفتح الخريطة
+        return [
+            'lat'      => $lat,
+            'lng'      => $lng,
+            'maps_url' => ($lat && $lng)
+                ? "https://www.google.com/maps/search/?api=1&query={$lat},{$lng}"
+                : null,
+        ];
     }
 
     /*────────────────────────────────────────────────────────────────────────────

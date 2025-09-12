@@ -89,8 +89,8 @@
                 <a id="horizontal-navtoggle" class="animated-arrow"><span></span></a>
                 <span class="smllogo">
 						<a href="{{route('home')}}">
-							<img src="{{ asset('uploads/'.$global_setting->logo) }}" class="mobile-light-logo" width="120" alt="pic"/>
-							<img src="{{ asset('uploads/'.$global_setting->logo) }}" class="mobile-dark-logo" width="120" alt="pic"/>
+							<img src="{{ asset('uploads/darklogo.png') }}" class="mobile-light-logo" width="120" alt="pic"/>
+							<img src="{{ asset('uploads/darklogo.png') }}" class="mobile-dark-logo" width="120" alt="pic"/>
 						</a>
 					</span>
                 <a href="tel:245-6325-3256" class="callusbtn"><i class="fa fa-phone" aria-hidden="true"></i></a>
@@ -102,11 +102,11 @@
     <div class="horizontal-main bg-dark-transparent clearfix">
         <div class="horizontal-mainwrapper container clearfix">
             <div class="desktoplogo">
-                <a href="index.html"><img src="../assets/images/brand/logo1.png" alt=""></a>
-            </div>
+                <a href="{{route('home')}}"><img src="{{ asset('uploads/lightlogo.png') }}" alt="Site Logo">
+                </a>            </div>
             <div class="desktoplogo-1">
-                <a href="index.html"><img src="../assets/images/brand/logo1.png" alt=""></a>
-            </div>
+                <a href="{{route('home')}}"><img src="{{ asset('uploads/lightlogo.png') }}" alt="Site Logo">
+                </a>            </div>
             <!--Nav-->
             <nav class="horizontalMenu clearfix d-md-flex">
                 <ul class="horizontalMenu-list">

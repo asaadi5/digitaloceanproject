@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('footer_phone')->nullable();
             $table->string('footer_facebook')->nullable();
             $table->string('footer_twitter')->nullable();
-            $table->string('footer_linkedin')->nullable();
+            $table->string('footer_youtube')->nullable();
             $table->string('footer_instagram')->nullable();
             $table->string('footer_copyright');
             $table->timestamps();
