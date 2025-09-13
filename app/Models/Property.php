@@ -227,6 +227,7 @@ class Property extends Model
         return array_values(array_filter(array_map('trim', explode(',', $raw))));
     }
 
+
     /***************************************************************************
      * ملاحظات مهمة
      * - لاستعمال الـ pivot الحقيقي للميزات، استخدم العلاقة amenitiesRelation().

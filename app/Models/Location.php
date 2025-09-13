@@ -8,6 +8,14 @@ class Location extends Model
 {
     public function properties()
     {
-        return $this->hasMany(Property::class);
+        // العلاقة الخام بدون شروط
+        return $this->hasMany(\App\Models\Property::class, 'location_id');
+    }
+
+    public function publicProperties()
+    {
+        // نفس العلاقة لكن مع فلترة الظهور العام عبر الـ Scope
+        return $this->hasMany(\App\Models\Property::class, 'location_id')
+            ->publicVisible();
     }
 }

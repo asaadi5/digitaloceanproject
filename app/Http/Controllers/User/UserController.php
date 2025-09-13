@@ -454,19 +454,34 @@ class UserController extends Controller
     ───────────────────────────────────────────────────────────────────────────*/
     public function toggle(Request $request)
     {
-        $uid = Auth::id();
-        $pid = (int) $request->input('property_id');
+        // لو المستخدم داخل كـ Agent، امنعه مباشرة
+        if (\Auth::guard('agent')->check()) {
+            return response()->json(['message' => 'لا يمكن للوكيل'], 403);
+        }
 
-        $row = Wishlist::where('user_id',$uid)->where('property_id',$pid)->first();
+        // لازم يكون داخل كـ web (عميل)
+        if (!\Auth::guard('web')->check()) {
+            return response()->json(['message' => 'غير مصرح'], 401);
+        }
+
+        $data = $request->validate([
+            'property_id' => ['required', 'integer', 'exists:properties,id'],
+        ]);
+
+        $user = \Auth::guard('web')->user();
+        $uid  = $user->id;
+        $pid  = (int) $data['property_id'];
+
+        $row = \App\Models\Wishlist::where('user_id', $uid)->where('property_id', $pid)->first();
 
         if ($row) {
             $row->delete();
             \Cache::forget("wishids:{$uid}");
             return response()->json(['added' => false]);
-        } else {
-            Wishlist::create(['user_id'=>$uid,'property_id'=>$pid]);
-            \Cache::forget("wishids:{$uid}");
-            return response()->json(['added' => true]);
         }
+
+        \App\Models\Wishlist::firstOrCreate(['user_id' => $uid, 'property_id' => $pid]);
+        \Cache::forget("wishids:{$uid}");
+        return response()->json(['added' => true]);
     }
 }

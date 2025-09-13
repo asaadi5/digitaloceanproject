@@ -571,7 +571,7 @@
 
                                 // رابط المفضلة حسب حالة المستخدم
                                 if(Auth::guard('web')->check()){
-                                    $wishUrl = route('wishlist_add', $p->id);
+                                    $wishUrl = route('wishlist_toggle');
                                 } else {
                                     $wishUrl = route('login');
                                 }
@@ -714,7 +714,7 @@
 
                             // روابط
                             $detailsUrl = route('property_detail', $p->slug);
-                            $wishUrl    = Auth::guard('web')->check() ? route('wishlist_add', $p->id) : route('login');
+                            $wishUrl    = Auth::guard('web')->check() ? route('wishlist_toggle') : route('login');
 
                             // تنسيق السعر
                             $price = number_format((float)$p->price, 0, '.', ',');
@@ -749,9 +749,14 @@
 
                                 <!-- أيقونة المفضلة -->
                                 <div class="item-card2-icons">
-                                    <a href="{{ $wishUrl }}" class="item-card2-icons-r bg-secondary">
-                                        <i class="fa fa fa-heart-o"></i>
+                                    <a href="{{ $detailsUrl }}" class="item-card2-icons-l bg-primary">
+                                        <i class="fa fa-home"></i>
                                     </a>
+                                    @include('components.wish.btn', [
+                                        'propertyId' => $p->id,
+                                        'wished'     => (bool)($p->wishlisted ?? 0) // أو استخدم دالتك/كاشك إن متوفر
+                                            ])
+
                                 </div>
 
                                 <!-- وسم "مميز" -->
@@ -965,25 +970,15 @@
         <!--Blogs-->
         <section class="sptb bg-white">
             @php
-                // تجهيز البيانات: أول 5 عناصر (4 يسار + 1 يمين)
-                $list = $locations instanceof \Illuminate\Support\Collection ? $locations->take(5) : collect([]);
+                // أول 5 عناصر (4 يسار + 1 يمين)
+                $list      = $locations instanceof \Illuminate\Support\Collection ? $locations->take(5) : collect([]);
                 $firstFour = $list->take(4);
                 $lastOne   = $list->slice(4, 1)->first();
 
-                // رابط الصورة (نفس الكلاسات، بس مصدر الصورة ديناميكي)
-                $imgUrl = function($loc) {
-                    return $loc && $loc->photo
-                        ? asset('uploads/'.$loc->photo)
-                        : asset('uploads/default-location.jpg');
-                };
-
-                // تنسيق الأرقام (اختياري، ما يغيّر الشكل)
-                if (class_exists(\NumberFormatter::class)) {
-                    $fmt = new \NumberFormatter('ar_EG', \NumberFormatter::DECIMAL);
-                    $fmtNum = fn($n) => $fmt->format($n ?? 0);
-                } else {
-                    $fmtNum = fn($n) => number_format($n ?? 0);
-                }
+                // صورة الموقع
+                $imgUrl = fn($loc) => ($loc && $loc->photo)
+                    ? asset('uploads/'.$loc->photo)
+                    : asset('uploads/default-location.jpg');
             @endphp
 
             <div class="container">
@@ -994,28 +989,33 @@
 
                 @if($list->isNotEmpty())
                     <div class="row">
+                        <!-- العمود الأيسر (4 كروت) -->
                         <div class="col-12 col-md-12 col-lg-12 col-xl-6">
                             <div class="row">
                                 @foreach($firstFour as $loc)
-                                    <div class="col-sm-12 col-lg-6 col-md-6 ">
+                                    @php $count = (int) ($loc->properties_count ?? 0); @endphp
+                                    <div class="col-sm-12 col-lg-6 col-md-6">
                                         <div class="item-card overflow-hidden">
                                             <div class="item-card-desc">
                                                 <div class="card text-center overflow-hidden">
                                                     <div class="card-img">
                                                         <img src="{{ $imgUrl($loc) }}" alt="{{ $loc->name }}" class="cover-image">
                                                     </div>
+
                                                     <div class="item-tags">
                                                         <div class="{{ $loop->index % 2 === 0 ? 'bg-primary' : 'bg-secondary' }} tag-option">
-                                                            <i class="fa fa fa-heart-o me-1"></i> {{ $fmtNum($loc->properties_count ?? 0) }}
+                                                            <i class="fa fa-heart-o me-1"></i> {{ $count }}
                                                         </div>
                                                     </div>
+
                                                     <div class="item-card-text">
                                                         <h4 class="mb-0">
-                                                            <a href="{{ route('location', $lastOne->slug) }}" style="color:inherit; text-decoration:none;">
-                                                                {{ $fmtNum($loc->properties_count ?? 0) }}
-                                                                <span><i class="fa fa-map-marker me-1 text-primary"></i>
-                                                                {{ $loc->name }}
-                                                            </span>
+                                                            <a href="{{ route('location', $loc->slug) }}" style="color:inherit; text-decoration:none;">
+                                                                {{ $count }}
+                                                                <span>
+                                                            <i class="fa fa-map-marker me-1 text-primary"></i>
+                                                            {{ $loc->name }}
+                                                        </span>
                                                             </a>
                                                         </h4>
                                                     </div>
@@ -1027,41 +1027,49 @@
                             </div>
                         </div>
 
+                        <!-- العمود الأيمن (كرت كبير واحد) -->
                         <div class="col-lg-12 col-md-12 col-xl-6 col-sm-12">
+                            @php $bigCount = (int) (optional($lastOne)->properties_count ?? 0); @endphp
                             <div class="item-card overflow-hidden">
                                 <div class="item-card-desc">
                                     <div class="card overflow-hidden mb-0">
                                         <div class="card-img">
                                             <img src="{{ $imgUrl($lastOne ?? null) }}" alt="{{ $lastOne->name ?? 'صورة' }}" class="cover-image">
                                         </div>
+
                                         <div class="item-tags">
                                             <div class="bg-primary tag-option">
-                                                <i class="fa fa fa-heart-o me-1"></i> {{ $fmtNum($lastOne->properties_count ?? 0) }}
+                                                <i class="fa fa-heart-o me-1"></i> {{ $bigCount }}
                                             </div>
                                         </div>
-                                        <div class="item-card-text">
 
+                                        <div class="item-card-text">
                                             <h4 class="mb-0">
-                                                <a href="{{ route('location', $lastOne->slug) }}" style="color:inherit; text-decoration:none;">
-                                                    {{ $fmtNum($lastOne->properties_count ?? 0) }}
-                                                    <span><i class="fa fa-map-marker text-primary me-1"></i>
-                                                    {{ $lastOne->name ?? '—' }}</span>
+                                                <a href="{{ $lastOne ? route('location', $lastOne->slug) : 'javascript:void(0);' }}" style="color:inherit; text-decoration:none;">
+                                                    {{ $bigCount }}
+                                                    <span>
+                                                <i class="fa fa-map-marker text-primary me-1"></i>
+                                                {{ $lastOne->name ?? '—' }}
+                                            </span>
                                                 </a>
                                             </h4>
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- /العمود الأيمن -->
                     </div>
                 @endif
             </div>
+
             <div class="text-center mt-5">
                 <a href="{{ route('locations') }}" class="btn btn-secondary btn-lg">عرض كل المحافظات</a>
             </div>
-
         </section>
+
+
+
         <!--Blogs-->
 
         <!--Download -->

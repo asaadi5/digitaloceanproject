@@ -56,16 +56,16 @@ class FrontController extends Controller
             ->get();
 
         // Locations ranked by publicly visible properties
-        $locations = Location::withCount(['properties' => fn ($q) => $q->publicVisible()])
+        $locations = Location::withCount(['publicProperties as properties_count'])
             ->orderBy('properties_count', 'desc')
             ->take(14)
             ->get();
 
-        // Top-5 locations
-        $topLocations = Location::withCount(['properties' => fn($q) => $q->publicVisible()])
+        $topLocations = Location::withCount(['publicProperties as properties_count'])
             ->orderBy('properties_count', 'desc')
             ->take(5)
             ->get();
+
 
         // Quick search facets
         $search_locations = Location::orderBy('name', 'asc')->get();
@@ -483,16 +483,9 @@ class FrontController extends Controller
     public function locations()
     {
         // Keep explicit conditions as in your code to ensure identical results
-        $locations = Location::withCount(['properties' => function ($query) {
-            $query->where('status', 'active')
-                ->whereHas('agent', function($q) {
-                    $q->whereHas('orders', function($qq) {
-                        $qq->where('currently_active', 1)
-                            ->where('status', 'Completed')
-                            ->where('expire_date', '>=', now());
-                    });
-                });
-        }])->orderBy('properties_count', 'desc')->paginate(20);
+        $locations = Location::withCount(['publicProperties as properties_count'])
+            ->orderBy('properties_count', 'desc')
+            ->paginate(20);
 
         return view('front.locations', compact('locations'));
     }
@@ -784,6 +777,7 @@ class FrontController extends Controller
     المدخلات: $id
     المخرجات: Redirect back برسالة مناسبة
     ────────────────────────────────────────────────────────────────────────────*/
+   /*
     public function wishlist_add($id)
     {
         if(!Auth::guard('web')->check()) {
@@ -805,7 +799,7 @@ class FrontController extends Controller
 
         return redirect()->back()->with('success', 'Property added to wishlist');
     }
-
+*/
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: subscriber_send_email
     الغرض: استقبال اشتراك جديد بالبريد وإرسال رابط تحقق

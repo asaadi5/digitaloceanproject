@@ -159,32 +159,72 @@ $(document).ready(function(){
 	$("#myModal").modal('show');
 });
 
-$(document).on('click', '.wishlist-toggle', function (e) {
-    e.preventDefault();
-    var btn = $(this);
-    var pid = btn.data('id');
+/**
+ * Wishlist Toggle Script
+ * - يعمل مع الزر .wishlist-toggle
+ * - يدعم الحالات:
+ *   401 → تحويل لصفحة تسجيل دخول العميل
+ *   403 → رفض للوكلاء
+ *   419 → انتهاء CSRF
+ */
 
-    $.post({
-        url: $('meta[name="wishlist-toggle-url"]').attr('content'),
-        data: {
-            _token: $('meta[name="csrf-token"]').attr('content'),
-            property_id: pid
-        },
-        success: function (res) {
-            var icon = btn.find('i');
-            if (res.added) {
-                icon.removeClass('fa-heart-o').addClass('fa-heart');
-            } else {
-                icon.removeClass('fa-heart').addClass('fa-heart-o');
+document.addEventListener('DOMContentLoaded', function () {
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    const toggleUrl = document.querySelector('meta[name="wishlist-toggle-url"]')?.getAttribute('content');
+
+    if (!token || !toggleUrl) {
+        console.warn('Wishlist toggle: CSRF token أو wishlist URL غير موجود.');
+        return;
+    }
+
+    document.body.addEventListener('click', async function (e) {
+        const btn = e.target.closest('.wishlist-toggle');
+        if (!btn) return;
+
+        const pid = btn.getAttribute('data-id');
+        if (!pid || btn.classList.contains('disabled')) return;
+
+        const icon = btn.querySelector('i');
+
+        try {
+            const res = await fetch(toggleUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ property_id: pid })
+            });
+
+            if (res.status === 401) {
+                window.location = '/login'; // تحويل لصفحة تسجيل الدخول
+                return;
             }
-        },
-        error: function (xhr) {
-            if (xhr.status === 401) {
-                // غير مسجل دخول
-                window.location = '/login';
-            } else {
-                alert('حدث خطأ غير متوقع');
+            if (res.status === 403) {
+                alert('الوكلاء لا يمكنهم استخدام المفضلة');
+                return;
             }
+            if (res.status === 419) {
+                alert('انتهت الجلسة. حدّث الصفحة وحاول مجددًا.');
+                return;
+            }
+            if (!res.ok) {
+                alert('حدث خطأ غير متوقع.');
+                return;
+            }
+
+            const data = await res.json();
+            if (data.added) {
+                icon.classList.remove('fa-heart-o');
+                icon.classList.add('fa-heart');
+            } else {
+                icon.classList.remove('fa-heart');
+                icon.classList.add('fa-heart-o');
+            }
+        } catch (err) {
+            console.error('Wishlist toggle error:', err);
+            alert('تعذّر الاتصال بالخادم.');
         }
     });
 });

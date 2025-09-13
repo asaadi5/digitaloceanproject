@@ -67,9 +67,7 @@ Route::get('/terms', [FrontController::class, 'terms'])->name('terms');
 Route::get('/privacy', [FrontController::class, 'privacy'])->name('privacy');
 
 // المفضلة
-Route::get('/wishlist-add/{id}', [FrontController::class, 'wishlist_add'])
-    ->whereNumber('id')
-    ->name('wishlist_add');
+//Route::get('/wishlist-add/{id}', [FrontController::class, 'wishlist_add'])->whereNumber('id')->name('wishlist_add');
 
 // البحث العام (واجهة قديمة/مباشرة)
 Route::get('/property-search', [FrontController::class, 'property_search'])->name('property_search');

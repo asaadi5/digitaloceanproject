@@ -7,6 +7,7 @@ use Illuminate\Auth\Middleware\Authenticate;
 use App\Http\Controllers\Api\V1\FrontController as ApiFront;
 use App\Http\Controllers\Api\V1\UserController  as ApiUser;
 use App\Http\Controllers\Api\V1\AgentController as ApiAgent;
+use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,8 +77,7 @@ Route::prefix('v1')->group(function () {
     Route::post('/auth/reset',                 [ApiUser::class, 'resetPassword']);
 
     /* ---------- Protected (Sanctum) for User ---------- */
-    Route::middleware([Authenticate::class . ':sanctum', 'abilities:user'])->group(function () {
-        // Session
+    Route::middleware([Authenticate::class . ':sanctum', CheckAbilities::class . ':user'])->group(function () {        // Session
         Route::post('/auth/logout', [ApiUser::class, 'logout']);
         Route::get ('/user',        [ApiUser::class, 'me']);
         Route::post('/user/profile',[ApiUser::class, 'updateProfile']);
@@ -117,7 +117,7 @@ Route::prefix('v1/agent')->group(function () {
     Route::post('/auth/login',                  [ApiAgent::class, 'login']);
 
     // Protected (Sanctum) for Agent
-    Route::middleware([Authenticate::class . ':sanctum', 'abilities:agent'])->group(function () {
+    Route::middleware([Authenticate::class . ':sanctum', CheckAbilities::class . ':agent'])->group(function () {
         Route::post('/auth/logout', [ApiAgent::class, 'logout']);
 
         // Profile & Dashboard
