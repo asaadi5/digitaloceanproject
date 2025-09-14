@@ -20,6 +20,37 @@ use Laravel\Sanctum\Http\Middleware\CheckAbilities;
 */
 
 Route::prefix('v1')->group(function () {
+    // for pages header
+    // Properties (مطابقة لمسارات الويب)
+    Route::prefix('properties')->name('api.properties.')->group(function () {
+        // /api/v1/properties
+        Route::get('/', [ApiFront::class, 'property_search'])->name('index');
+
+        // /api/v1/properties/featured  (لازم قبل الديناميكية)
+        Route::get('/featured', [ApiFront::class, 'property_search'])->name('featured');
+
+        // /api/v1/properties/sale | rent | wanted
+        Route::get('/{purpose}', [ApiFront::class, 'property_search'])
+            ->where('purpose', 'sale|rent|wanted')
+            ->name('purpose');
+
+        // /api/v1/properties/residential | commercial | recreational | lands [/type?]
+        Route::get('/{category}/{type?}', [ApiFront::class, 'property_search'])
+            ->where('category', 'residential|commercial|recreational|lands')
+            ->name('category');
+
+        // /api/v1/properties/sale/residential[/type?]
+        Route::get('/{purpose}/{category}/{type?}', [ApiFront::class, 'property_search'])
+            ->where([
+                'purpose'  => 'sale|rent|wanted',
+                'category' => 'residential|commercial|recreational|lands',
+            ])->name('purpose_category');
+
+        // أخيراً: /api/v1/properties/{slug} (موقع/محافظة...)
+        Route::get('/{slug}', [ApiFront::class, 'property_search'])
+            ->where('slug', '^(?!featured$|sale$|rent$|wanted$|residential$|commercial$|recreational$|lands$).+')
+            ->name('location');
+    });
 
     // Health
     Route::get('/test', fn () => response()->json(['status' => 'ok', 'message' => 'API working fine 🚀']));
@@ -68,6 +99,11 @@ Route::prefix('v1')->group(function () {
     Route::post('/contact',                         [ApiFront::class, 'contact_submit']);
     Route::post('/subscriber',                      [ApiFront::class, 'subscriber_send_email']);
     Route::get ('/subscriber/verify/{email}/{token}', [ApiFront::class, 'subscriber_verify']);
+
+
+
+
+
 
     /* ---------- User Auth (public) ---------- */
     Route::post('/auth/register',              [ApiUser::class, 'register']);

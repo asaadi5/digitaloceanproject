@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Mail\Websitemail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Route;
 
 use App\Http\Resources\PropertyResource;
 
@@ -409,38 +410,72 @@ class FrontController extends Controller
     ────────────────────────────────────────────────────────────────────────────*/
     public function property_search(Request $request)
     {
-        // Route-like slugs (optional from mobile)
-        $purposeSlug  = $request->query('purpose_slug');   // sale|rent|wanted
-        $categorySlug = $request->query('category_slug');  // residential|commercial|recreational|lands
-        $typeSlug     = $request->query('type_slug');      // apartment|villa|...
-        $locationSlug = $request->query('location_slug');  // if mobile sends slug
+        // Slugs من الراوت (مثل الويب)
+        $purposeSlug  = $request->route('purpose');    // sale|rent|wanted
+        $categorySlug = $request->route('category');   // residential|commercial|recreational|lands
+        $typeSlug     = $request->route('type');       // apartment|villa|...
+        $locationSlug = $request->route('slug');       // مسار المواقع catch-all
         $locationRow  = null;
 
+        // جرّب الـ slug كموقع أولاً
         if ($locationSlug) {
             $locationRow = Location::select('id','name')->where('slug', $locationSlug)->first();
-            if ($locationRow) $request->merge(['location_id' => $locationRow->id]);
+            if ($locationRow) {
+                $request->merge(['location_id' => $locationRow->id]);
+            }
         }
 
+        // لو مش موقع، جرّبه كغرض/فئة/نوع
+        if ($locationSlug && !$locationRow) {
+            // غرض
+            if (in_array($locationSlug, ['sale','rent','wanted','بيع','إيجار','ايجار','مطلوب'], true)) {
+                $map = ['بيع' => 'sale', 'إيجار' => 'rent', 'ايجار'=>'rent', 'مطلوب' => 'wanted'];
+                $purposeSlug = $map[$locationSlug] ?? $locationSlug;
+                if (!$request->filled('purpose_in')) {
+                    $request->merge(['purpose_in' => [$purposeSlug]]);
+                }
+            }
+            // فئة رئيسية
+            elseif ($catId = Type::whereNull('parent_id')->where('slug', $locationSlug)->value('id')) {
+                $categorySlug = $locationSlug;
+                if (!$request->filled('category_id')) {
+                    $request->merge(['category_id' => $catId]);
+                }
+            }
+            // نوع فرعي
+            elseif ($typeId = Type::where('slug', $locationSlug)->value('id')) {
+                $typeSlug = $locationSlug;
+                if (!$request->filled('type')) {
+                    $request->merge(['type' => $typeId]);
+                }
+            }
+        }
+
+        // من الراوت مباشرة (نفس الويب)
         if ($purposeSlug && !$request->filled('purpose_in')) {
             $request->merge(['purpose_in' => [$purposeSlug]]);
         }
-
         if ($categorySlug && !$request->filled('category_id')) {
             $catId = Type::whereNull('parent_id')->where('slug', $categorySlug)->value('id');
             if ($catId) $request->merge(['category_id' => $catId]);
         }
-
         if ($typeSlug && !$request->filled('type')) {
-            $request->merge(['type' => $typeSlug]);
+            $typeId = is_numeric($typeSlug) ? (int)$typeSlug : Type::where('slug', $typeSlug)->value('id');
+            if ($typeId) $request->merge(['type' => $typeId]);
         }
 
-        // Inputs
-        $name          = trim((string) $request->query('name', ''));
+        // featured تلقائي لمسار /featured
+        if (Route::currentRouteName() === 'api.properties.featured' && !$request->has('featured')) {
+            $request->merge(['featured' => 1, 'sort' => $request->query('sort', 'newest')]);
+        }
+
+        // === Inputs (نفس أسماء الويب) ===
+        $name          = trim((string)$request->query('name', ''));
         $typeParam     = $request->query('type');
-        $areaRange     = trim((string) $request->query('area_range', ''));
-        $cityText      = trim((string) $request->query('city_text', ''));
-        $provinceText  = trim((string) $request->query('province_text', ''));
-        $purposeParam  = trim((string) $request->query('purpose', ''));
+        $areaRange     = trim((string)$request->query('area_range', ''));
+        $cityText      = trim((string)$request->query('city_text', ''));
+        $provinceText  = trim((string)$request->query('province_text', ''));
+        $purposeParam  = trim((string)$request->query('purpose', ''));
         $categoryId    = $request->integer('category_id');
         $sort          = $request->query('sort', 'newest');
 
@@ -450,13 +485,13 @@ class FrontController extends Controller
         $featuredOnly  = $request->boolean('featured');
         $locationId    = $request->input('location_id');
 
-        $escapeLike = static function (string $v): string {
-            return addcslashes($v, "\\%_");
-        };
+        // LIKE escape
+        $escapeLike = static fn (string $v): string => addcslashes($v, "\\%_");
 
-        // نبدأ بعقارات نشِطة فقط
-        $query = Property::query()->active();
+        // === Query (نفس الويب) ===
+        $query = Property::query()->where('status', 'active');
 
+        // purpose_in[] مع مرادفات
         $purposeIn = (array) $request->query('purpose_in', []);
         if (!empty($purposeIn)) {
             $all = [];
@@ -466,18 +501,24 @@ class FrontController extends Controller
             $query->whereIn('purpose', array_unique($all));
         }
 
+        // الموقع
         if ($locationId) {
             $query->where('location_id', $locationId);
-        } elseif ($request->filled('city_text')) {
-            $ct = trim((string) $request->query('city_text', ''));
-            if ($ct !== '') $query->where('address', 'like', '%'.$escapeLike($ct).'%');
+        } elseif ($cityText !== '') {
+            $query->where('address', 'like', '%'.$escapeLike($cityText).'%');
         }
 
+        // الفئة الرئيسية → تقييد الأنواع
         if ($categoryId) {
-            $allowedTypeIds = Type::where('id', $categoryId)->orWhere('parent_id', $categoryId)->pluck('id');
-            if ($allowedTypeIds->isNotEmpty()) $query->whereIn('type_id', $allowedTypeIds);
+            $allowedTypeIds = Type::where('id', $categoryId)
+                ->orWhere('parent_id', $categoryId)
+                ->pluck('id');
+            if ($allowedTypeIds->isNotEmpty()) {
+                $query->whereIn('type_id', $allowedTypeIds);
+            }
         }
 
+        // النوع (ID أو slug/اسم)
         if ($typeParam !== null && $typeParam !== '') {
             if (is_numeric($typeParam)) {
                 $query->where('type_id', (int) $typeParam);
@@ -487,8 +528,12 @@ class FrontController extends Controller
             }
         }
 
-        if ($name !== '') $query->where('name', 'like', '%'.$escapeLike($name).'%');
+        // الاسم
+        if ($name !== '') {
+            $query->where('name', 'like', '%'.$escapeLike($name).'%');
+        }
 
+        // المساحة "100-200" / "150+" / "-120"
         if ($areaRange !== '') {
             $range = preg_replace('/\s+/', '', $areaRange);
             [$mode, $a, $b] = $this->normalizeAreaRange($range);
@@ -502,34 +547,42 @@ class FrontController extends Controller
             }
         }
 
+        // السعر
         if ($priceMin !== null && $priceMin !== '' && is_numeric($priceMin)) {
             $query->where('price', '>=', (float) $priceMin);
         }
         if ($priceMax !== null && $priceMax !== '' && is_numeric($priceMax)) {
             $query->where('price', '<=', (float) $priceMax);
         }
+
+        // غرف النوم
         if ($bedroomMin !== null && $bedroomMin !== '' && is_numeric($bedroomMin)) {
             $query->where('bedroom', '>=', (int) $bedroomMin);
         }
 
-        if ($cityText !== '')     $query->where('address', 'like', '%'.$escapeLike($cityText).'%');
-        if ($provinceText !== '') $query->where('address', 'like', '%'.$escapeLike($provinceText).'%');
+        // نصوص إضافية
+        if ($provinceText !== '') {
+            $query->where('address', 'like', '%'.$escapeLike($provinceText).'%');
+        }
 
-        if ($featuredOnly) $query->featured();
+        // المميّزة
+        if ($featuredOnly) {
+            $query->where('is_featured', 'yes'); // تأكد من القيم بقاعدة البيانات
+        }
 
-        // Apply exact same sort combos
+        // الفرز
         $this->applySort($query, $sort);
 
-        // Paginated result + eager 'type'
+        // النتائج
         $properties = $query->with('type')->paginate(12)->withQueryString();
 
-        // Side collections
+        // مجموعات الأنواع
         $resiTypeIds  = $this->typeIdsFor(1);
         $commTypeIds  = $this->typeIdsFor(2);
         $recreTypeIds = $this->typeIdsFor(3);
         $landsTypeIds = $this->typeIdsFor(4);
 
-        // Page title
+        // العنوان (اختياري للـAPI)
         $pageTitle = $this->buildSearchPageTitle(
             $purposeSlug, $purposeParam, $purposeIn,
             $typeSlug, $typeParam, $escapeLike,
@@ -537,15 +590,80 @@ class FrontController extends Controller
             $featuredOnly, $sort
         );
 
-        return PropertyResource::collection($properties)
-            ->additional([
-                'pageTitle'    => $pageTitle,
-                'resiTypeIds'  => $resiTypeIds,
-                'commTypeIds'  => $commTypeIds,
-                'recreTypeIds' => $recreTypeIds,
-                'landsTypeIds' => $landsTypeIds,
-            ]);
+        return PropertyResource::collection($properties)->additional([
+            'pageTitle'    => $pageTitle,
+            'resiTypeIds'  => $resiTypeIds,
+            'commTypeIds'  => $commTypeIds,
+            'recreTypeIds' => $recreTypeIds,
+            'landsTypeIds' => $landsTypeIds,
+        ]);
     }
+// مرادفات الغرض
+    protected function purposeVariants(string $p): array
+    {
+        $p = mb_strtolower(trim($p));
+        $map = [
+            'sale'   => ['sale','sell','بيع'],
+            'rent'   => ['rent','إيجار','ايجار'],
+            'wanted' => ['wanted','مطلوب'],
+        ];
+        foreach ($map as $arr) if (in_array($p, $arr, true)) return $arr;
+        return [$p];
+    }
+
+// بحث النوع بمرونة (slug/اسم جزئي)
+    protected function getTypeByFlexibleInput(string $input, callable $escapeLike)
+    {
+        $t = trim($input);
+        if ($row = Type::where('slug', $t)->first()) return $row;
+        return Type::where('name', 'like', '%'.$escapeLike($t).'%')->first();
+    }
+
+// "100-200" | "150+" | "-120"
+    protected function normalizeAreaRange(string $range): array
+    {
+        if (preg_match('/^(\d+)\-(\d+)$/', $range, $m)) return ['between', (int)$m[1], (int)$m[2]];
+        if (preg_match('/^(\d+)\+$/', $range, $m))      return ['min', (int)$m[1], 0];
+        if (preg_match('/^\-(\d+)$/', $range, $m))      return ['max', (int)$m[1], 0];
+        return ['none', 0, 0];
+    }
+
+// الفرز (مطابق للويب)
+    protected function applySort(\Illuminate\Database\Eloquent\Builder $q, string $sort): void
+    {
+        switch ($sort) {
+            case 'price_low':  $q->orderBy('price', 'asc'); break;
+            case 'price_high': $q->orderBy('price', 'desc'); break;
+            case 'area_low':   $q->orderBy('size', 'asc');  break;
+            case 'area_high':  $q->orderBy('size', 'desc'); break;
+            case 'newest':
+            default:           $q->orderBy('id', 'desc');   break;
+        }
+    }
+
+// IDs لمجاميع الأنواع العليا
+    protected function typeIdsFor(int $topId): array
+    {
+        return Type::where('id', $topId)
+            ->orWhere('parent_id', $topId)
+            ->pluck('id')->toArray();
+    }
+
+// عنوان الصفحة (اختياري)
+    protected function buildSearchPageTitle(
+        $purposeSlug, $purposeParam, $purposeIn,
+        $typeSlug, $typeParam, $escapeLike,
+        $categorySlug, $categoryId,
+        $featuredOnly, $sort
+    ): string {
+        $parts = [];
+        if (!empty($purposeIn)) $parts[] = implode('/', array_map('ucfirst', (array)$purposeIn));
+        if ($categorySlug)      $parts[] = ucfirst($categorySlug);
+        if ($typeSlug)          $parts[] = ucfirst(str_replace('-', ' ', $typeSlug));
+        if ($featuredOnly)      $parts[] = 'Featured';
+        return implode(' · ', $parts) ?: 'Properties';
+    }
+
 
     /*────────────────────────────────────────────────────────────────────────────
     الدالة: wishlist_add
@@ -664,16 +782,7 @@ class FrontController extends Controller
         'wanted' => 'مطلوب',
     ];
 
-    private function typeIdsFor(int $parentId)
-    {
-        return Type::where('id', $parentId)->orWhere('parent_id', $parentId)->pluck('id');
-    }
 
-    private function applySort(\Illuminate\Database\Eloquent\Builder $q, ?string $sort): void
-    {
-        $plan = self::SORT_MAP[$sort] ?? self::SORT_MAP['newest'];
-        foreach ($plan as [$col, $dir]) $q->orderBy($col, $dir);
-    }
 
     private function bumpPropertyViews(Property $property): void
     {
@@ -716,80 +825,7 @@ class FrontController extends Controller
         }
     }
 
-    private function normalizeAreaRange(string $range): array
-    {
-        if (preg_match('/^(\d+)-(\d+)$/', $range, $m)) return ['between', (int)$m[1], (int)$m[2]];
-        if (preg_match('/^(\d+)\+$/', $range, $m))    return ['min', (int)$m[1], null];
-        if (preg_match('/^-(\d+)$/', $range, $m))     return ['max', (int)$m[1], null];
-        return [null, null, null];
-    }
 
-    private function getTypeByFlexibleInput(string $input, callable $escapeLike)
-    {
-        return Type::where('slug', $input)
-            ->orWhere('name', 'like', '%'.$escapeLike($input).'%')
-            ->first();
-    }
 
-    private function purposeVariants(string $p): array
-    {
-        return match ($p) {
-            'sale'   => ['sale','buy','بيع'],
-            'rent'   => ['rent','إيجار'],
-            'wanted' => ['wanted','مطلوب'],
-            default  => [$p],
-        };
-    }
 
-    private function buildSearchPageTitle(
-        ?string $purposeSlug,
-        ?string $purposeParam,
-        array   $purposeIn,
-        ?string $typeSlug,
-                $typeParam,
-        callable $escapeLike,
-        ?string $categorySlug,
-        ?int    $categoryId,
-        bool    $featuredOnly,
-        ?string $sort
-    ): string {
-        $purposeText = null;
-        if ($purposeSlug && isset(self::PURPOSE_TEXT[$purposeSlug])) {
-            $purposeText = self::PURPOSE_TEXT[$purposeSlug];
-        } elseif ($purposeParam && isset(self::PURPOSE_TEXT[$purposeParam])) {
-            $purposeText = self::PURPOSE_TEXT[$purposeParam];
-        } elseif (count($purposeIn) === 1) {
-            $one = $purposeIn[0];
-            $purposeText = self::PURPOSE_TEXT[$one] ?? null;
-        }
-
-        $typeName = null;
-        if ($typeSlug) {
-            $typeName = Type::where('slug', $typeSlug)->value('name');
-        } elseif ($typeParam !== null && $typeParam !== '') {
-            if (is_numeric($typeParam)) {
-                $typeName = Type::where('id', (int)$typeParam)->value('name');
-            } else {
-                $typeName = Type::where('slug', $typeParam)
-                    ->orWhere('name', 'like', '%'.$escapeLike($typeParam).'%')
-                    ->value('name');
-            }
-        }
-
-        $categoryName = null;
-        if (!$typeName) {
-            if ($categorySlug) {
-                $categoryName = Type::whereNull('parent_id')->where('slug', $categorySlug)->value('name');
-            } elseif ($categoryId) {
-                $categoryName = Type::where('id', $categoryId)->whereNull('parent_id')->value('name');
-            }
-        }
-
-        if ($typeName)                 return $purposeText ? ($typeName.' '.$purposeText) : $typeName;
-        if ($categoryName)             return $purposeText ? ($categoryName.' '.$purposeText) : $categoryName;
-        if ($featuredOnly)             return 'العقارات المميّزة';
-        if ($purposeText)              return 'عقارات '.$purposeText;
-        if (($sort ?? '') === 'newest') return 'أحدث العقارات';
-        return 'نتائج البحث';
-    }
 }
