@@ -335,14 +335,14 @@ class AgentController extends Controller
 
         $total_current_order = Order::where('agent_id', $aid)->count();
         $packages     = Package::orderBy('price', 'asc')->get();
-        $currentOrder = Order::where('agent_id', $aid)->where('currently_active', 1)->first();
+        $current_order = Order::where('agent_id', $aid)->where('currently_active', 1)->first();
 
         $days_left = 0;
-        if ($currentOrder) {
-            $days_left = (strtotime($currentOrder->expire_date) - strtotime(date('Y-m-d'))) / 86400;
+        if ($current_order) {
+            $days_left = (strtotime($current_order->expire_date) - strtotime(date('Y-m-d'))) / 86400;
         }
 
-        return view('agent.payment.index', compact('packages', 'total_current_order', 'currentOrder', 'days_left'));
+        return view('agent.payment.index', compact('packages', 'total_current_order', 'current_order', 'days_left'));
     }
 
     /*───────────────────────────────────────────────────────────────────────────
